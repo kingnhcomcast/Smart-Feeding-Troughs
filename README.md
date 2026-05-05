@@ -1,1 +1,1 @@
-# ExampleMod
+# SmartBreedingTroughs

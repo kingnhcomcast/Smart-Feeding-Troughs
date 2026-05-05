@@ -8,34 +8,34 @@
         "${mod_author}"
     ],
     "contact": {
-        "homepage": "https://github.com/kingnhcomcast/examplemod",
-        "sources": "https://github.com/kingnhcomcast/examplemod"
+        "homepage": "https://github.com/kingnhcomcast/smartbreedingtroughs",
+        "sources": "https://github.com/kingnhcomcast/smartbreedingtroughs"
     },
     "license": "${license}",
-    "icon": "assets/examplemod/icon.png",
+    "icon": "assets/smartbreedingtroughs/icon.png",
     "environment": "*",
     "entrypoints": {
         "main": [
-            "io.drahlek.examplemod.ExampleMod"
+            "io.drahlek.smartbreedingtroughs.SmartBreedingTroughs"
         ],
         "client": [
-            "io.drahlek.examplemod.ExamplemodClient"
+            "io.drahlek.smartbreedingtroughs.SmartBreedingTroughsClient"
         ]
     },
     "mixins": [
         {
-            "config": "examplemod.common.client.mixins.json",
+            "config": "smartbreedingtroughs.common.client.mixins.json",
             "environment": "client"
         },
         {
-            "config": "examplemod.fabric.client.mixins.json",
+            "config": "smartbreedingtroughs.fabric.client.mixins.json",
             "environment": "client"
         },
         {
-            "config": "examplemod.fabric.mixins.json"
+            "config": "smartbreedingtroughs.fabric.mixins.json"
         },
         {
-            "config": "examplemod.common.main.mixins.json"
+            "config": "smartbreedingtroughs.common.main.mixins.json"
         }
     ],
     "depends": {

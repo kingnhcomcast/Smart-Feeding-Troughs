@@ -1,0 +1,61 @@
+1.0
+- icon
+
+- trough
+    - 4 slot container
+    - animal food only (if possible)
+    - recipe
+        S   S       slabs
+        P P P       planks
+    - creative tab
+    - tooltip
+
+- AI
+    - locate and claim breedable animals that are
+        in range
+        can path to trough
+        not yet claimed
+        adult
+    -  every feedcheck if not empty
+        - verify claimed animals still alive, in range and if not release claim
+        - claim new animals until count = config.maxFeedCount
+        - for each claimed animal if
+            trough contains correct animal.food and
+            at least 2 available of same type and
+            ready to breed then
+            - config.feedChance
+                - walk to trough (if can't path, release claim)
+                - consume food
+                - breed
+
+- config
+    - range
+    - max claimed animals
+    - feedcheck interval in ticks
+    - feedChance
+
+1.1
+- trough
+    - can pipe items in/out
+    - show food in trough, indicate fullness level
+    - somehow trigger visual indicator of which animals are claimed
+
+- AI
+    - if animal hurt, feed and heal
+    - babies feed and grow (lower chance of this happening)
+
+- animal
+    - animate feeding - lower head?
+    - feeding particles
+    - modded animals (might work anyway)
+    - eating sound
+
+- config
+    - max feed count per animal type
+    - feed chance per animal type
+    - whitelist/blacklist
+    - override animal food type
+
+- redstone
+    - disable
+    - comparator
