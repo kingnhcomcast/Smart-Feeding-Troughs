@@ -1,0 +1,53 @@
+configurations {
+    // Dependencies declared here are available to Java compile/runtime classpaths
+    // and are also surfaced to Fabric Loader as dev-run mod candidates.
+    developmentModImplementation {
+        canBeResolved = false
+        canBeConsumed = false
+    }
+    developmentModRuntimeOnly {
+        canBeResolved = false
+        canBeConsumed = false
+    }
+    developmentFabricMods {
+        canBeResolved = true
+        canBeConsumed = false
+        extendsFrom(configurations.developmentModImplementation, configurations.developmentModRuntimeOnly)
+    }
+}
+
+configurations.named('implementation') {
+    extendsFrom(configurations.developmentModImplementation)
+}
+
+configurations.named('runtimeOnly') {
+    extendsFrom(configurations.developmentModRuntimeOnly)
+}
+
+afterEvaluate {
+    def resolveDevelopmentModPaths = {
+        // Fabric Loader needs explicit mod candidate paths for included-build mods in dev runs.
+        configurations.developmentFabricMods.files
+            .findAll { it.exists() }
+            .collect { it.absolutePath }
+            .join(File.pathSeparator)
+    }
+
+    tasks.named('runClient') {
+        dependsOn(tasks.named('jar'))
+        doFirst {
+            def developmentModPaths = resolveDevelopmentModPaths()
+            def clientDevelopmentModPaths = [
+                developmentModPaths,
+                tasks.named('jar').get().archiveFile.get().asFile.absolutePath
+            ].findAll { !it.isBlank() }.join(File.pathSeparator)
+            systemProperty('fabric.addMods', clientDevelopmentModPaths)
+        }
+    }
+
+    tasks.named('runServer') {
+        doFirst {
+            systemProperty('fabric.addMods', resolveDevelopmentModPaths())
+        }
+    }
+}
