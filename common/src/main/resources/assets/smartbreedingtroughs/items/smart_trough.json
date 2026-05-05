@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "smartbreedingtroughs:block/smart_trough"
+  }
+}

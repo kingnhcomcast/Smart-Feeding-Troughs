@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "smartbreedingtroughs:block/smart_trough" },
+    "facing=east": { "model": "smartbreedingtroughs:block/smart_trough", "y": 90 },
+    "facing=south": { "model": "smartbreedingtroughs:block/smart_trough", "y": 180 },
+    "facing=west": { "model": "smartbreedingtroughs:block/smart_trough", "y": 270 }
+  }
+}

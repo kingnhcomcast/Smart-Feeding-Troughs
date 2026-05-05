@@ -1,0 +1,86 @@
+package io.drahlek.smartbreedingtroughs.blocks;
+
+import com.mojang.serialization.MapCodec;
+import io.drahlek.dirigo.annotation.Block;
+import io.drahlek.smartbreedingtroughs.blocks.entity.SmartBreedingTroughBlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jspecify.annotations.Nullable;
+
+@Block(id = SmartBreedingTroughBlock.NAME,
+        validBlockEntityTypes = {SmartBreedingTroughBlock.NAME},
+        creativeTab = "functional_blocks")
+public class SmartBreedingTroughBlock extends BaseEntityBlock {
+    public static final String NAME = "smart_trough";
+    public static final int SLOT_COUNT = 4;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final MapCodec<SmartBreedingTroughBlock> CODEC = simpleCodec(SmartBreedingTroughBlock::new);
+    private static final VoxelShape SHAPE = Shapes.or(
+            box(1.0D, 0.0D, 1.0D, 15.0D, 5.0D, 15.0D),
+            box(0.0D, 5.0D, 0.0D, 16.0D, 8.0D, 16.0D)
+    );
+
+    public SmartBreedingTroughBlock(BlockBehaviour.Properties properties) {
+        super(properties
+                .requiresCorrectToolForDrops()
+                .mapColor(MapColor.WOOD)
+                .instrument(NoteBlockInstrument.BASS)
+                .strength(2.0F, 3.0F)
+                .sound(SoundType.WOOD)
+                .ignitedByLava()
+                .noOcclusion());
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    @Override
+    public MapCodec<SmartBreedingTroughBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new SmartBreedingTroughBlockEntity(blockPos, blockState);
+    }
+
+    @Override
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
+        builder.add(FACING);
+    }
+
+    @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPE;
+    }
+}
