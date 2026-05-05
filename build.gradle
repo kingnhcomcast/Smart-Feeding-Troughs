@@ -1,0 +1,56 @@
+plugins {
+    id 'base'
+    // see https://fabricmc.net/develop/ for new versions
+    id 'net.fabricmc.fabric-loom' version '1.15-SNAPSHOT' apply false
+    // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
+    id 'net.neoforged.moddev' version '2.0.140' apply false
+}
+
+subprojects {
+    tasks.withType(Checkstyle).configureEach {
+        // This stops Checkstyle from failing the build or logging missing Javadoc
+        enabled = false
+    }
+
+    tasks.withType(Javadoc).configureEach {
+        // This prevents the Javadoc tool from complaining about missing comments
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}
+
+def subprojectLifecycleTasks = { String taskName ->
+    subprojects.collect { "${it.path}:${taskName}" }
+}
+def dirigoIncludedBuild = gradle.includedBuilds.find { it.name == 'Dirigo' || it.name == 'dirigo' }
+
+tasks.named('assemble') {
+    description = 'Assembles all multiloader subprojects.'
+    dependsOn(subprojectLifecycleTasks('assemble'))
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':assemble'))
+    }
+}
+
+tasks.named('check') {
+    description = 'Runs checks for all multiloader subprojects.'
+    dependsOn(subprojectLifecycleTasks('check'))
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':check'))
+    }
+}
+
+tasks.named('build') {
+    description = 'Builds all multiloader subprojects.'
+    dependsOn(subprojectLifecycleTasks('build'))
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':build'))
+    }
+}
+
+tasks.named('clean') {
+    description = 'Cleans all multiloader subprojects.'
+    dependsOn(subprojectLifecycleTasks('clean'))
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':clean'))
+    }
+}
