@@ -40,6 +40,11 @@ afterEvaluate {
         systemProperty('fabric.addMods', clientDevelopmentModPaths)
     }
 
+    tasks.named('runDatagen') {
+        dependsOn(tasks.named('jar'))
+        systemProperty('fabric.addMods', clientDevelopmentModPaths)
+    }
+
     tasks.named('runServer') {
         systemProperty('fabric.addMods', developmentModPaths)
     }

@@ -20,6 +20,9 @@
         ],
         "client": [
             "io.drahlek.smartbreedingtroughs.SmartBreedingTroughsClient"
+        ],
+        "fabric-datagen": [
+            "io.drahlek.smartbreedingtroughs.datagen.DataGenerator"
         ]
     },
     "mixins": [

@@ -3,6 +3,7 @@ package io.drahlek.smartbreedingtroughs;
 
 import io.drahlek.dirigo.services.NeoForgeBlockRegistrar;
 import io.drahlek.dirigo.services.Services;
+import io.drahlek.smartbreedingtroughs.datagen.DataGenerators;
 import io.drahlek.smartbreedingtroughs.platform.NeoForgeBlockEntityTypeRegistrar;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -14,6 +15,7 @@ public class SmartBreedingTroughs {
         // Perform logic in that should be executed on both sides
 
         Constants.LOG.info("{} Main Initialize", Constants.MOD_NAME);
+        eventBus.addListener(DataGenerators::gatherData);
         if (io.drahlek.smartbreedingtroughs.platform.Services.BLOCK_ENTITY_TYPE_REGISTRAR instanceof NeoForgeBlockEntityTypeRegistrar registrar) {
             registrar.initialize(eventBus, Constants.MOD_ID);
         }

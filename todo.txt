@@ -1,14 +1,16 @@
 1.0
-- icon
+* icon
+- readme
 
 - trough
     - 4 slot container
-    - animal food only (if possible)
-    - recipe
+    * recipe
         S   S       slabs
         P P P       planks
-    - creative tab
+    * creative tab
     - tooltip
+    - change item icon to be isometric
+    - make block bigger
 
 - AI
     - locate and claim breedable animals that are
@@ -39,6 +41,7 @@
     - can pipe items in/out
     - show food in trough, indicate fullness level
     - somehow trigger visual indicator of which animals are claimed
+    - animal food only (if possible)
 
 - AI
     - if animal hurt, feed and heal

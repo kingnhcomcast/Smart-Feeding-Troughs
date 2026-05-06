@@ -2,9 +2,14 @@ package io.drahlek.smartbreedingtroughs.blocks;
 
 import com.mojang.serialization.MapCodec;
 import io.drahlek.dirigo.annotation.Block;
+import io.drahlek.dirigo.annotation.Recipe;
+import io.drahlek.dirigo.datagen.RecipeContext;
+import io.drahlek.dirigo.registrars.BlockRegistrar;
 import io.drahlek.smartbreedingtroughs.blocks.entity.SmartBreedingTroughBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -47,6 +52,22 @@ public class SmartBreedingTroughBlock extends BaseEntityBlock {
                 .ignitedByLava()
                 .noOcclusion());
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    @Recipe
+    public static void buildRecipe(RecipeContext recipe) {
+        recipe.shaped(
+                        RecipeCategory.MISC,
+                        BlockRegistrar.blocks.get(SmartBreedingTroughBlock.NAME).get().asItem(),
+                        1
+                )
+                .pattern("S S")
+                .pattern("PPP")
+                .define('S', ItemTags.WOODEN_SLABS)
+                .define('P', ItemTags.PLANKS)
+                .unlockedBy("has_planks", recipe.has(ItemTags.PLANKS))
+                .unlockedBy("has_slab", recipe.has(ItemTags.WOODEN_SLABS))
+                .save(recipe.output());
     }
 
     @Override
