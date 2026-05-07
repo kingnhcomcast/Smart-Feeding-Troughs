@@ -9,8 +9,8 @@
         P P P       planks
     * creative tab
     - tooltip
-    - change item icon to be isometric
-    - make block bigger
+    * change item icon to be isometric
+    * make block bigger
 
 - AI
     - locate and claim breedable animals that are
@@ -42,6 +42,7 @@
     - show food in trough, indicate fullness level
     - somehow trigger visual indicator of which animals are claimed
     - animal food only (if possible)
+    - if placed together, combine into 1 - unless shift (work like chests/double chests)
 
 - AI
     - if animal hurt, feed and heal
