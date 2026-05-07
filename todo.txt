@@ -8,7 +8,7 @@
         S   S       slabs
         P P P       planks
     * creative tab
-    - tooltip
+    * tooltip
     * change item icon to be isometric
     * make block bigger
 

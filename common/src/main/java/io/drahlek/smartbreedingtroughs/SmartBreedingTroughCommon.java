@@ -1,5 +1,6 @@
 package io.drahlek.smartbreedingtroughs;
 
+import io.drahlek.dirigo.registrars.ItemRegistrar;
 import io.drahlek.smartbreedingtroughs.blocks.entity.SmartBreedingTroughBlockEntityTypes;
 import io.drahlek.dirigo.registrars.BlockRegistrar;
 
@@ -9,6 +10,7 @@ import io.drahlek.dirigo.registrars.BlockRegistrar;
 // however it will be compatible with all supported mod loaders.
 public class SmartBreedingTroughCommon {
     public static final String BLOCKS_PACKAGE = Constants.GROUP + ".blocks";
+    public static final String ITEMS_PACKAGE = Constants.GROUP + ".items";
 
     // The loader specific projects are able to import and use any code from the common project. This allows you to
     // write the majority of your code here and load it from your loader specific projects. This example has some
@@ -18,5 +20,6 @@ public class SmartBreedingTroughCommon {
         //SmartBreedingTroughConfig.instance();
         SmartBreedingTroughBlockEntityTypes.register();
         BlockRegistrar.registerBlocks(Constants.MOD_ID, BLOCKS_PACKAGE);
+        ItemRegistrar.registerItems(Constants.MOD_ID, ITEMS_PACKAGE);
     }
 }

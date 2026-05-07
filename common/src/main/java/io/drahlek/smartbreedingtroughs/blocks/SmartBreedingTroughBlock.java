@@ -4,11 +4,13 @@ import com.mojang.serialization.MapCodec;
 import io.drahlek.dirigo.annotation.Block;
 import io.drahlek.dirigo.annotation.Recipe;
 import io.drahlek.dirigo.datagen.RecipeContext;
-import io.drahlek.dirigo.registrars.BlockRegistrar;
+import io.drahlek.smartbreedingtroughs.Constants;
 import io.drahlek.smartbreedingtroughs.blocks.entity.SmartBreedingTroughBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -31,7 +33,7 @@ import org.jspecify.annotations.Nullable;
 
 @Block(id = SmartBreedingTroughBlock.NAME,
         validBlockEntityTypes = {SmartBreedingTroughBlock.NAME},
-        creativeTab = "functional_blocks")
+        registerItem = false)
 public class SmartBreedingTroughBlock extends BaseEntityBlock {
     public static final String NAME = "smart_trough";
     public static final int SLOT_COUNT = 4;
@@ -68,7 +70,7 @@ public class SmartBreedingTroughBlock extends BaseEntityBlock {
     public static void buildRecipe(RecipeContext recipe) {
         recipe.shaped(
                         RecipeCategory.MISC,
-                        BlockRegistrar.blocks.get(SmartBreedingTroughBlock.NAME).get().asItem(),
+                        BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(Constants.MOD_ID, SmartBreedingTroughBlock.NAME)),
                         1
                 )
                 .pattern("S S")

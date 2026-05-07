@@ -2,6 +2,7 @@ package io.drahlek.smartbreedingtroughs;
 
 
 import io.drahlek.dirigo.services.NeoForgeBlockRegistrar;
+import io.drahlek.dirigo.services.NeoForgeItemRegistrar;
 import io.drahlek.dirigo.services.Services;
 import io.drahlek.smartbreedingtroughs.datagen.DataGenerators;
 import io.drahlek.smartbreedingtroughs.platform.NeoForgeBlockEntityTypeRegistrar;
@@ -20,6 +21,9 @@ public class SmartBreedingTroughs {
             registrar.initialize(eventBus, Constants.MOD_ID);
         }
         if (Services.BLOCK_REGISTRAR instanceof NeoForgeBlockRegistrar registrar) {
+            registrar.initialize(eventBus, Constants.MOD_ID);
+        }
+        if (Services.ITEM_REGISTRAR instanceof NeoForgeItemRegistrar registrar) {
             registrar.initialize(eventBus, Constants.MOD_ID);
         }
         SmartBreedingTroughCommon.init();
