@@ -1,9 +1,13 @@
 package io.drahlek.smartbreedingtroughs;
 
+import com.mojang.brigadier.CommandDispatcher;
+import io.drahlek.dirigo.registrars.CommandRegistrar;
 import io.drahlek.dirigo.registrars.ItemRegistrar;
 import io.drahlek.smartbreedingtroughs.blocks.SmartBreedingTroughMenu;
 import io.drahlek.smartbreedingtroughs.blocks.entity.SmartBreedingTroughBlockEntityTypes;
 import io.drahlek.dirigo.registrars.BlockRegistrar;
+import io.drahlek.smartbreedingtroughs.config.SmartBreedingTroughConfig;
+import net.minecraft.commands.CommandSourceStack;
 
 // This class is part of the common project meaning it is shared between all supported loaders. Code written here can only
 // import and access the vanilla codebase, libraries used by vanilla, and optionally third party libraries that provide
@@ -18,10 +22,14 @@ public class SmartBreedingTroughCommon {
     // code that gets invoked by the entry point of the loader specific projects.
     public static void init() {
         Constants.LOG.info("{} Common Initialize", Constants.MOD_NAME);
-        //SmartBreedingTroughConfig.instance();
+        SmartBreedingTroughConfig.instance();
         SmartBreedingTroughMenu.register();
         SmartBreedingTroughBlockEntityTypes.register();
         BlockRegistrar.registerBlocks(Constants.MOD_ID, BLOCKS_PACKAGE);
         ItemRegistrar.registerItems(Constants.MOD_ID, ITEMS_PACKAGE);
+    }
+
+    public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+        CommandRegistrar.registerCommands(dispatcher, Constants.MOD_ID, Constants.GROUP);
     }
 }

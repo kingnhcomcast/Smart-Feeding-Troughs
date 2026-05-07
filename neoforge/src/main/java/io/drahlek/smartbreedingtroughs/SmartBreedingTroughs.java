@@ -9,6 +9,8 @@ import io.drahlek.smartbreedingtroughs.datagen.DataGenerators;
 import io.drahlek.smartbreedingtroughs.platform.NeoForgeBlockEntityTypeRegistrar;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 @Mod(Constants.MOD_ID)
 public class SmartBreedingTroughs {
@@ -31,5 +33,11 @@ public class SmartBreedingTroughs {
             registrar.initialize(eventBus, Constants.MOD_ID);
         }
         SmartBreedingTroughCommon.init();
+        NeoForge.EVENT_BUS.addListener(this::registerCommands);
     }
+
+    private void registerCommands(RegisterCommandsEvent event) {
+        SmartBreedingTroughCommon.registerCommands(event.getDispatcher());
+    }
+
 }
