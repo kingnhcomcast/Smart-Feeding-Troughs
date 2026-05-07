@@ -3,6 +3,7 @@ package io.drahlek.smartbreedingtroughs;
 
 import io.drahlek.dirigo.services.NeoForgeBlockRegistrar;
 import io.drahlek.dirigo.services.NeoForgeItemRegistrar;
+import io.drahlek.dirigo.services.NeoForgeMenuTypeRegistrar;
 import io.drahlek.dirigo.services.Services;
 import io.drahlek.smartbreedingtroughs.datagen.DataGenerators;
 import io.drahlek.smartbreedingtroughs.platform.NeoForgeBlockEntityTypeRegistrar;
@@ -18,6 +19,9 @@ public class SmartBreedingTroughs {
         Constants.LOG.info("{} Main Initialize", Constants.MOD_NAME);
         eventBus.addListener(DataGenerators::gatherData);
         if (io.drahlek.smartbreedingtroughs.platform.Services.BLOCK_ENTITY_TYPE_REGISTRAR instanceof NeoForgeBlockEntityTypeRegistrar registrar) {
+            registrar.initialize(eventBus, Constants.MOD_ID);
+        }
+        if (Services.MENU_TYPE_REGISTRAR instanceof NeoForgeMenuTypeRegistrar registrar) {
             registrar.initialize(eventBus, Constants.MOD_ID);
         }
         if (Services.BLOCK_REGISTRAR instanceof NeoForgeBlockRegistrar registrar) {

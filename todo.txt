@@ -2,8 +2,8 @@
 * icon
 - readme
 
-- trough
-    - 4 slot container
+* trough block
+    * 4 slot container
     * recipe
         S   S       slabs
         P P P       planks

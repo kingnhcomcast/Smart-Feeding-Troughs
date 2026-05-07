@@ -1,6 +1,7 @@
 package io.drahlek.smartbreedingtroughs;
 
 import io.drahlek.dirigo.registrars.ItemRegistrar;
+import io.drahlek.smartbreedingtroughs.blocks.SmartBreedingTroughMenu;
 import io.drahlek.smartbreedingtroughs.blocks.entity.SmartBreedingTroughBlockEntityTypes;
 import io.drahlek.dirigo.registrars.BlockRegistrar;
 
@@ -18,6 +19,7 @@ public class SmartBreedingTroughCommon {
     public static void init() {
         Constants.LOG.info("{} Common Initialize", Constants.MOD_NAME);
         //SmartBreedingTroughConfig.instance();
+        SmartBreedingTroughMenu.register();
         SmartBreedingTroughBlockEntityTypes.register();
         BlockRegistrar.registerBlocks(Constants.MOD_ID, BLOCKS_PACKAGE);
         ItemRegistrar.registerItems(Constants.MOD_ID, ITEMS_PACKAGE);
