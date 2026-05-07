@@ -25,7 +25,8 @@ dependencies {
     developmentModImplementation "io.drahlek:fabric:${dirigo_min_version}"
 
     def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
-    implementation("io.drahlek:common:${dirigo_min_version}") {
+    // Dirigo common is provided at runtime by the Dirigo Fabric mod artifact.
+    compileOnly("io.drahlek:common:${dirigo_min_version}") {
         attributes {
             attribute(loaderAttribute, 'common')
         }
