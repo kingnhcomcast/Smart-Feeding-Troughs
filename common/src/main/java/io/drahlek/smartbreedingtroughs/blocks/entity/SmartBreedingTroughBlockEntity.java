@@ -5,6 +5,7 @@ import io.drahlek.smartbreedingtroughs.Constants;
 import io.drahlek.smartbreedingtroughs.blocks.SmartBreedingTroughBlock;
 import io.drahlek.smartbreedingtroughs.blocks.SmartBreedingTroughMenu;
 import io.drahlek.smartbreedingtroughs.config.SmartBreedingTroughConfig;
+import io.drahlek.smartbreedingtroughs.mixin.AnimalInvoker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -130,7 +131,7 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
             if(!consumedFood.isEmpty()) {
                 Constants.LOG.info("Feeding {}({})", animal.getName().getString(), animal.getId());
                 animal.setInLove(null);
-                //animal.playEatingSound();  //TODO mixin to access it
+                ((AnimalInvoker) animal).smartbreedingtroughs$playEatingSound();
             }
         }
     }

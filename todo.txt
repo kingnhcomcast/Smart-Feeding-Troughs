@@ -46,7 +46,7 @@
 
 1.1
 - trough
-    - can pipe items in/out
+    * can pipe items in/out
     - show food in trough, indicate fullness level
     - somehow trigger visual indicator of which animals are claimed
     - animal food only (if possible)
@@ -60,7 +60,7 @@
     - animate feeding - lower head?
     - feeding particles
     - modded animals (might work anyway)
-    - eating sound
+    * eating sound
 
 - config
     - max feed count per animal type
