@@ -26,15 +26,23 @@
             at least 2 available of same type and
             ready to breed then
             - config.feedChance
-                - walk to trough (if can't path, release claim)
-                - consume food
-                - breed
+                * walk to trough (if can't path, release claim)
+                * consume food
 
-- config
-    - range
-    - max claimed animals
-    - feedcheck interval in ticks
-    - feedChance
+* config
+    * range
+    * max claimed animals
+    * feedcheck interval in ticks
+    * feedChance
+
+- stop them from standing on top of trough to feed, just walk 1 block away
+- babies are not counted against cap
+- need a separate tick count to do the feed. if they walk to trough and walk away before feeding, they wont feed until they walk back
+- data is just stored on class, need to persist it instead
+- implement feed chance
+- remove animals that are out of range, changed worlds, cant path
+- dont feed if no other mate is nearby
+- remove log statements
 
 1.1
 - trough

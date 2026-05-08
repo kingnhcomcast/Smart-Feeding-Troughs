@@ -6,6 +6,7 @@ import io.drahlek.dirigo.annotation.Recipe;
 import io.drahlek.dirigo.datagen.RecipeContext;
 import io.drahlek.smartbreedingtroughs.Constants;
 import io.drahlek.smartbreedingtroughs.blocks.entity.SmartBreedingTroughBlockEntity;
+import io.drahlek.smartbreedingtroughs.blocks.entity.SmartBreedingTroughBlockEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,6 +23,8 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -104,6 +107,13 @@ public class SmartBreedingTroughBlock extends BaseEntityBlock {
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new SmartBreedingTroughBlockEntity(blockPos, blockState);
+    }
+
+    @Override
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> blockEntityType) {
+        return level.isClientSide()
+                ? null
+                : createTickerHelper(blockEntityType, SmartBreedingTroughBlockEntityTypes.smartBreedingTrough(), SmartBreedingTroughBlockEntity::tick);
     }
 
     @Override

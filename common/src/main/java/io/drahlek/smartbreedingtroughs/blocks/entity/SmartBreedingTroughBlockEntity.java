@@ -1,7 +1,10 @@
 package io.drahlek.smartbreedingtroughs.blocks.entity;
 
+import com.google.common.collect.Lists;
+import io.drahlek.smartbreedingtroughs.Constants;
 import io.drahlek.smartbreedingtroughs.blocks.SmartBreedingTroughBlock;
 import io.drahlek.smartbreedingtroughs.blocks.SmartBreedingTroughMenu;
+import io.drahlek.smartbreedingtroughs.config.SmartBreedingTroughConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -13,23 +16,180 @@ import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
+
 public class SmartBreedingTroughBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
+    private static final int[] SLOTS = {0, 1, 2, 3};
     private NonNullList<ItemStack> items = NonNullList.withSize(SmartBreedingTroughBlock.SLOT_COUNT, ItemStack.EMPTY);
+    private List<Animal> animals = Lists.newArrayList();
 
     public SmartBreedingTroughBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(SmartBreedingTroughBlockEntityTypes.smartBreedingTrough(), blockPos, blockState);
+    }
+
+    public static void tick(Level level, BlockPos blockPos, BlockState blockState, SmartBreedingTroughBlockEntity trough) {
+        if (level.isClientSide()) {
+            return;
+        }
+
+        int feedcheckInterval = Math.max(1, SmartBreedingTroughConfig.data().getFeedcheckInterval());
+        if (level.getGameTime() % feedcheckInterval != 0) {
+            return;
+        }
+
+        trough.feedCheck(level);
+    }
+
+    /**
+     *     - locate and claim breedable animals that are
+     *         in range
+     *         can path to trough
+     *         not yet claimed
+     *         adult
+     *     -  every feedcheck if not empty
+     *         - verify claimed animals still alive, in range and if not release claim
+     *         - claim new animals until count = config.maxFeedCount
+     *         - for each claimed animal if
+     *             trough contains correct animal.food and
+     *             at least 2 available of same type and    <===== TODO
+     *             - config.feedChance
+     *                 - walk to trough (if can't path, release claim)
+     *                 - consume food
+     *                 - breed
+     */
+    private void feedCheck(Level level) {
+        Constants.LOG.info("Feed check started");
+
+        //if trough is empty or we are at max cap, do nothing
+        if(isEmpty()) {
+            Constants.LOG.info("Trough is empty");
+            return;
+        }
+
+        //verify claimed animals
+        verifyClaimedAnimals();
+
+        //check max capacity and exit to avoid needless computation
+        if (isAtMaxCapacity()) return;
+
+        //locate animals
+        locateAnimals(level);
+
+        //check max capacity again
+        if (isAtMaxCapacity()) return;
+
+        //feed animals
+        feedAnimals();
+    }
+
+    private boolean isAtMaxCapacity() {
+        if(animals.size() >= SmartBreedingTroughConfig.data().getMaxClaimedAnimals()) {
+            Constants.LOG.info("Trough is at max capacity");
+            return true;
+        }
+        return false;
+    }
+
+    private void feedAnimals() {
+        //animial.getAge == 0 means adult and not on breeding cooldown
+        //canFallInLove() mean not already in love, and extra subclass rules
+        animals.stream()
+                .filter(animal -> (animal.getAge() == 0) && animal.canFallInLove()) //ready to breed
+                .forEach(this::feedAnimal); //feed them
+    }
+
+    private void feedAnimal(Animal animal) {
+        Constants.LOG.info("Animal {}({}) walking to trough", animal.getName().getString(), animal.getId());
+        //walk to trough  //TODO if already walking should we not make them walk again?
+        animal.getNavigation().moveTo(
+                this.worldPosition.getX() + 0.5,
+                this.worldPosition.getY(),
+                this.worldPosition.getZ() + 0.5,
+                1.0
+        );
+
+        //if at trough, feed
+        if ((animal.distanceToSqr(Vec3.atCenterOf(this.worldPosition)) <= 4.0D) && animal.canFallInLove()) {
+            ItemStack consumedFood = consumeFoodFor(animal);
+            if(!consumedFood.isEmpty()) {
+                Constants.LOG.info("Feeding {}({})", animal.getName().getString(), animal.getId());
+                animal.setInLove(null);
+                //animal.playEatingSound();  //TODO mixin to access it
+            }
+        }
+    }
+
+    private ItemStack consumeFoodFor(Animal animal) {
+        for (int slot = 0; slot < items.size(); slot++) {
+            ItemStack stack = items.get(slot);
+
+            if (!stack.isEmpty() && animal.isFood(stack)) {
+                return this.removeItem(slot, 1);
+            }
+        }
+
+        return ItemStack.EMPTY;
+
+    }
+
+    //TODO do we check max range if they are way to far away?
+    private void verifyClaimedAnimals() {
+        //release animal if they have been killed, or if we no longer have any food
+        animals.removeIf(animal -> !animal.isAlive() || !hasBreedingFoodFor(animal));
+        Constants.LOG.info("Claimed animals size {}", animals.size());
+    }
+
+    /**
+     *
+     *         in range
+     *         can path to trough  <==== TODO
+     *         not yet claimed by another trough  <==== TODO
+     *         adult
+     *         */
+    private void locateAnimals(Level level) {
+        int range = SmartBreedingTroughConfig.data().getRange();
+        int maxAnimals = SmartBreedingTroughConfig.data().getMaxClaimedAnimals();
+        AABB area = new AABB(this.worldPosition).inflate(range);
+
+        //get all animals that are in range, adult, and that trough has correct food
+        for (Animal animal : level.getEntitiesOfClass(Animal.class, area, animal ->
+                !animal.isBaby() && hasBreedingFoodFor(animal))) {
+            if (animals.size() >= maxAnimals) {
+                break;
+            }
+
+            if (!animals.contains(animal)) {
+                Constants.LOG.info("Claimed animal {}({})", animal.getDisplayName().getString(), animal.getId());
+                animals.add(animal);
+            }
+        }
+    }
+
+
+    private boolean hasBreedingFoodFor(Animal animal) {
+        for (ItemStack item : this.items) {
+            if (!item.isEmpty() && animal.isFood(item)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -118,7 +278,7 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
 
     @Override
     public int @NonNull [] getSlotsForFace(@NonNull Direction direction) {
-        return new int[]{0, 1, 2, 3};
+        return SLOTS;
     }
 
     @Override
