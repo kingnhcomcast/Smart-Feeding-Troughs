@@ -1,7 +1,7 @@
 {
   "textures": {
-    "particle": "smartbreedingtroughs:block/smart_trough",
-    "wood": "smartbreedingtroughs:block/smart_trough"
+    "particle": "minecraft:block/oak_planks",
+    "wood": "minecraft:block/oak_planks"
   },
   "elements": [
     {
@@ -17,7 +17,7 @@
       }
     },
     {
-      "from": [0, 2, 3],
+      "from": [0, 0, 3],
       "to": [16, 8, 5],
       "faces": {
         "down": { "texture": "#wood", "uv": [0, 3, 16, 5] },
@@ -29,7 +29,7 @@
       }
     },
     {
-      "from": [0, 2, 11],
+      "from": [0, 0, 11],
       "to": [16, 8, 13],
       "faces": {
         "down": { "texture": "#wood", "uv": [0, 11, 16, 13] },
@@ -41,7 +41,7 @@
       }
     },
     {
-      "from": [0, 2, 5],
+      "from": [0, 0, 5],
       "to": [2, 8, 11],
       "faces": {
         "down": { "texture": "#wood", "uv": [0, 5, 2, 11] },
@@ -53,7 +53,7 @@
       }
     },
     {
-      "from": [14, 2, 5],
+      "from": [14, 0, 5],
       "to": [16, 8, 11],
       "faces": {
         "down": { "texture": "#wood", "uv": [14, 5, 16, 11] },

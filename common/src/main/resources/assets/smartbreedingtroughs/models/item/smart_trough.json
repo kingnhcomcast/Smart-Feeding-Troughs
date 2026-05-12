@@ -1,6 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "smartbreedingtroughs:item/smart_trough"
-  }
+  "parent": "smartbreedingtroughs:block/smart_trough"
 }

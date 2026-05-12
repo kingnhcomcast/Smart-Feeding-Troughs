@@ -35,9 +35,10 @@
     * feedcheck interval in ticks
     * feedChance
 
+- killing mobs does not release claim
 - stop them from standing on top of trough to feed, just walk 1 block away
 - babies are not counted against cap
-- need a separate tick count to do the feed. if they walk to trough and walk away before feeding, they wont feed until they walk back
+* need a separate tick count to do the feed. if they walk to trough and walk away before feeding, they wont feed until they walk back
 - data is just stored on class, need to persist it instead
 - implement feed chance
 - remove animals that are out of range, changed worlds, cant path

@@ -1,11 +1,11 @@
 package io.drahlek.smartbreedingtroughs.blocks.entity;
 
 import com.google.common.collect.Lists;
+import io.drahlek.smartbreedingtroughs.animal.ISmartTroughClaimedAnimal;
 import io.drahlek.smartbreedingtroughs.Constants;
 import io.drahlek.smartbreedingtroughs.blocks.SmartBreedingTroughBlock;
 import io.drahlek.smartbreedingtroughs.blocks.SmartBreedingTroughMenu;
 import io.drahlek.smartbreedingtroughs.config.SmartBreedingTroughConfig;
-import io.drahlek.smartbreedingtroughs.mixin.AnimalInvoker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -92,11 +92,6 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
         //locate animals
         locateAnimals(level);
 
-        //check max capacity again
-        if (isAtMaxCapacity()) return;
-
-        //feed animals
-        feedAnimals();
     }
 
     private boolean isAtMaxCapacity() {
@@ -107,32 +102,23 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
         return false;
     }
 
-    private void feedAnimals() {
-        //animial.getAge == 0 means adult and not on breeding cooldown
-        //canFallInLove() mean not already in love, and extra subclass rules
-        animals.stream()
-                .filter(animal -> (animal.getAge() == 0) && animal.canFallInLove()) //ready to breed
-                .forEach(this::feedAnimal); //feed them
-    }
+    public void feedAnimal(Animal animal) {
+        if (!animals.contains(animal)
+                || !(animal instanceof ISmartTroughClaimedAnimal claimedAnimal)
+                || animal.getAge() != 0
+                || !animal.canFallInLove()) {
+            return;
+        }
 
-    private void feedAnimal(Animal animal) {
-        Constants.LOG.info("Animal {}({}) walking to trough", animal.getName().getString(), animal.getId());
-        //walk to trough  //TODO if already walking should we not make them walk again?
-        animal.getNavigation().moveTo(
-                this.worldPosition.getX() + 0.5,
-                this.worldPosition.getY(),
-                this.worldPosition.getZ() + 0.5,
-                1.0
-        );
+        if (animal.distanceToSqr(Vec3.atCenterOf(this.worldPosition)) > 4.0D) {
+            return;
+        }
 
-        //if at trough, feed
-        if ((animal.distanceToSqr(Vec3.atCenterOf(this.worldPosition)) <= 4.0D) && animal.canFallInLove()) {
-            ItemStack consumedFood = consumeFoodFor(animal);
-            if(!consumedFood.isEmpty()) {
-                Constants.LOG.info("Feeding {}({})", animal.getName().getString(), animal.getId());
-                animal.setInLove(null);
-                ((AnimalInvoker) animal).smartbreedingtroughs$playEatingSound();
-            }
+        ItemStack consumedFood = consumeFoodFor(animal);
+        if (!consumedFood.isEmpty()) {
+            Constants.LOG.info("Feeding {}({})", animal.getName().getString(), animal.getId());
+            animal.setInLove(null);
+            claimedAnimal.smartbreedingtroughs$playEatingSound();
         }
     }
 
@@ -152,7 +138,23 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
     //TODO do we check max range if they are way to far away?
     private void verifyClaimedAnimals() {
         //release animal if they have been killed, or if we no longer have any food
-        animals.removeIf(animal -> !animal.isAlive() || !hasBreedingFoodFor(animal));
+        animals.removeIf(animal -> {
+            if (!(animal instanceof ISmartTroughClaimedAnimal claimedAnimal)) {
+                return true;
+            }
+
+            BlockPos claimedTroughPos = claimedAnimal.smartbreedingtroughs$getClaimedTroughPos();
+            boolean claimedByThisTrough = this.worldPosition.equals(claimedTroughPos);
+            boolean remove = !animal.isAlive()
+                    || !hasBreedingFoodFor(animal)
+                    || !claimedByThisTrough;
+
+            if (remove && claimedByThisTrough) {
+                claimedAnimal.smartbreedingtroughs$releaseClaim();
+            }
+
+            return remove;
+        });
         Constants.LOG.info("Claimed animals size {}", animals.size());
     }
 
@@ -175,15 +177,18 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
                 break;
             }
 
-            if (!animals.contains(animal)) {
+            if (!animals.contains(animal)
+                    && animal instanceof ISmartTroughClaimedAnimal claimedAnimal
+                    && claimedAnimal.smartbreedingtroughs$getClaimedTroughPos() == null) {
                 Constants.LOG.info("Claimed animal {}({})", animal.getDisplayName().getString(), animal.getId());
                 animals.add(animal);
+                claimedAnimal.smartbreedingtroughs$claim(this);
             }
         }
     }
 
 
-    private boolean hasBreedingFoodFor(Animal animal) {
+    public boolean hasBreedingFoodFor(Animal animal) {
         for (ItemStack item : this.items) {
             if (!item.isEmpty() && animal.isFood(item)) {
                 return true;

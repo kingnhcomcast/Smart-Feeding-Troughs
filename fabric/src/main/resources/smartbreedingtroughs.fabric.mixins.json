@@ -5,7 +5,6 @@
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "ExampleMixin"
   ],
   "injectors": {
     "defaultRequire": 1

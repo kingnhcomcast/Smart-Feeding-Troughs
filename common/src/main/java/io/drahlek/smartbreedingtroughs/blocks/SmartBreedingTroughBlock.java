@@ -48,18 +48,18 @@ public class SmartBreedingTroughBlock extends BaseEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final MapCodec<SmartBreedingTroughBlock> CODEC = simpleCodec(SmartBreedingTroughBlock::new);
     private static final VoxelShape X_AXIS_SHAPE = Shapes.or(
-            box(2.0D, 0.0D, 4.0D, 14.0D, 2.0D, 12.0D),
-            box(0.0D, 2.0D, 3.0D, 16.0D, 8.0D, 5.0D),
-            box(0.0D, 2.0D, 11.0D, 16.0D, 8.0D, 13.0D),
-            box(0.0D, 2.0D, 5.0D, 2.0D, 8.0D, 11.0D),
-            box(14.0D, 2.0D, 5.0D, 16.0D, 8.0D, 11.0D)
+            box(2.0D, 0.0D, 4.0D, 14.0D, 2.0D, 12.0D),  // bottom
+            box(0.0D, 0.0D, 3.0D, 16.0D, 8.0D, 5.0D),   // north
+            box(0.0D, 0.0D, 11.0D, 16.0D, 8.0D, 13.0D), // south
+            box(0.0D, 0.0D, 5.0D, 2.0D, 8.0D, 11.0D),   // west
+            box(14.0D, 0.0D, 5.0D, 16.0D, 8.0D, 11.0D)  // east
     );
     private static final VoxelShape Z_AXIS_SHAPE = Shapes.or(
             box(4.0D, 0.0D, 2.0D, 12.0D, 2.0D, 14.0D),
-            box(3.0D, 2.0D, 0.0D, 5.0D, 8.0D, 16.0D),
-            box(11.0D, 2.0D, 0.0D, 13.0D, 8.0D, 16.0D),
-            box(5.0D, 2.0D, 0.0D, 11.0D, 8.0D, 2.0D),
-            box(5.0D, 2.0D, 14.0D, 11.0D, 8.0D, 16.0D)
+            box(3.0D, 0.0D, 0.0D, 5.0D, 8.0D, 16.0D),
+            box(11.0D, 0.0D, 0.0D, 13.0D, 8.0D, 16.0D),
+            box(5.0D, 0.0D, 0.0D, 11.0D, 8.0D, 2.0D),
+            box(5.0D, 0.0D, 14.0D, 11.0D, 8.0D, 16.0D)
     );
 
     public SmartBreedingTroughBlock(BlockBehaviour.Properties properties) {
