@@ -8,37 +8,37 @@
         "${mod_author}"
     ],
     "contact": {
-        "homepage": "https://github.com/kingnhcomcast/smartbreedingtroughs",
-        "sources": "https://github.com/kingnhcomcast/smartbreedingtroughs"
+        "homepage": "https://github.com/kingnhcomcast/smartfeedingtroughs",
+        "sources": "https://github.com/kingnhcomcast/smartfeedingtroughs"
     },
     "license": "${license}",
-    "icon": "assets/smartbreedingtroughs/icon.png",
+    "icon": "assets/smartfeedingtroughs/icon.png",
     "environment": "*",
     "entrypoints": {
         "main": [
-            "io.drahlek.smartbreedingtroughs.SmartBreedingTroughs"
+            "io.drahlek.smartfeedingtroughs.SmartFeedingTroughs"
         ],
         "client": [
-            "io.drahlek.smartbreedingtroughs.SmartBreedingTroughsClient"
+            "io.drahlek.smartfeedingtroughs.SmartFeedingTroughsClient"
         ],
         "fabric-datagen": [
-            "io.drahlek.smartbreedingtroughs.datagen.DataGenerator"
+            "io.drahlek.smartfeedingtroughs.datagen.DataGenerator"
         ]
     },
     "mixins": [
         {
-            "config": "smartbreedingtroughs.common.client.mixins.json",
+            "config": "smartfeedingtroughs.common.client.mixins.json",
             "environment": "client"
         },
         {
-            "config": "smartbreedingtroughs.fabric.client.mixins.json",
+            "config": "smartfeedingtroughs.fabric.client.mixins.json",
             "environment": "client"
         },
         {
-            "config": "smartbreedingtroughs.fabric.mixins.json"
+            "config": "smartfeedingtroughs.fabric.mixins.json"
         },
         {
-            "config": "smartbreedingtroughs.common.main.mixins.json"
+            "config": "smartfeedingtroughs.common.main.mixins.json"
         }
     ],
     "depends": {
