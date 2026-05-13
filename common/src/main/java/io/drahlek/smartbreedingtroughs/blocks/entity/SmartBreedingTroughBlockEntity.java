@@ -26,6 +26,7 @@ import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
@@ -77,21 +78,20 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
     private void feedCheck(Level level) {
         Constants.LOG.info("Feed check started");
 
-        //if trough is empty or we are at max cap, do nothing
+        //verify claimed animals
+        verifyClaimedAnimals();
+
+        //if trough is empty or we are at max cap, release claim on all animals
         if(isEmpty()) {
             Constants.LOG.info("Trough is empty");
             return;
         }
 
-        //verify claimed animals
-        verifyClaimedAnimals();
-
         //check max capacity and exit to avoid needless computation
         if (isAtMaxCapacity()) return;
 
         //locate animals
-        locateAnimals(level);
-
+        claimAnimals(level);
     }
 
     private boolean isAtMaxCapacity() {
@@ -110,6 +110,11 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
             return;
         }
 
+        if (!this.worldPosition.equals(claimedAnimal.smartbreedingtroughs$getClaimedTroughPos())) {
+            animals.remove(animal);
+            return;
+        }
+
         if (animal.distanceToSqr(Vec3.atCenterOf(this.worldPosition)) > 4.0D) {
             return;
         }
@@ -120,6 +125,41 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
             animal.setInLove(null);
             claimedAnimal.smartbreedingtroughs$playEatingSound();
         }
+    }
+
+    public boolean hasBreedingFoodFor(Animal animal) {
+        for (ItemStack item : this.items) {
+            if (!item.isEmpty() && animal.isFood(item)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void releaseAnimal(Animal animal) {
+        if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal
+                && this.worldPosition.equals(claimedAnimal.smartbreedingtroughs$getClaimedTroughPos())) {
+            claimedAnimal.smartbreedingtroughs$releaseClaim();
+        }
+
+        animals.remove(animal);
+    }
+
+    public void releaseAllAnimals() {
+        for (Animal animal : animals) {
+            if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal
+                    && this.worldPosition.equals(claimedAnimal.smartbreedingtroughs$getClaimedTroughPos())) {
+                claimedAnimal.smartbreedingtroughs$releaseClaim();
+            }
+        }
+        animals.clear();
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        releaseAllAnimals();
+        super.preRemoveSideEffects(pos, state);
     }
 
     private ItemStack consumeFoodFor(Animal animal) {
@@ -137,6 +177,9 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
 
     //TODO do we check max range if they are way to far away?
     private void verifyClaimedAnimals() {
+        int range = SmartBreedingTroughConfig.data().getRange();
+        AABB claimArea = new AABB(this.worldPosition).inflate(range);
+
         //release animal if they have been killed, or if we no longer have any food
         animals.removeIf(animal -> {
             if (!(animal instanceof ISmartTroughClaimedAnimal claimedAnimal)) {
@@ -146,6 +189,7 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
             BlockPos claimedTroughPos = claimedAnimal.smartbreedingtroughs$getClaimedTroughPos();
             boolean claimedByThisTrough = this.worldPosition.equals(claimedTroughPos);
             boolean remove = !animal.isAlive()
+                    || !claimArea.contains(animal.position())
                     || !hasBreedingFoodFor(animal)
                     || !claimedByThisTrough;
 
@@ -158,44 +202,44 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
         Constants.LOG.info("Claimed animals size {}", animals.size());
     }
 
+
     /**
      *
      *         in range
      *         can path to trough  <==== TODO
-     *         not yet claimed by another trough  <==== TODO
+     *         not yet claimed by another trough
      *         adult
      *         */
-    private void locateAnimals(Level level) {
+    private void claimAnimals(Level level) {
         int range = SmartBreedingTroughConfig.data().getRange();
         int maxAnimals = SmartBreedingTroughConfig.data().getMaxClaimedAnimals();
         AABB area = new AABB(this.worldPosition).inflate(range);
 
-        //get all animals that are in range, adult, and that trough has correct food
-        for (Animal animal : level.getEntitiesOfClass(Animal.class, area, animal ->
-                !animal.isBaby() && hasBreedingFoodFor(animal))) {
-            if (animals.size() >= maxAnimals) {
-                break;
-            }
-
-            if (!animals.contains(animal)
-                    && animal instanceof ISmartTroughClaimedAnimal claimedAnimal
-                    && claimedAnimal.smartbreedingtroughs$getClaimedTroughPos() == null) {
+        //get all animals that are in range
+        for (Animal animal : level.getEntitiesOfClass(Animal.class, area, this::canClaim)) {
+            if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal && !claimedAnimal.smartbreedingtroughs$isClaimed()) {
                 Constants.LOG.info("Claimed animal {}({})", animal.getDisplayName().getString(), animal.getId());
                 animals.add(animal);
                 claimedAnimal.smartbreedingtroughs$claim(this);
+                if (animals.size() >= maxAnimals) {
+                    break;
+                }
             }
         }
     }
 
-
-    public boolean hasBreedingFoodFor(Animal animal) {
-        for (ItemStack item : this.items) {
-            if (!item.isEmpty() && animal.isFood(item)) {
-                return true;
-            }
+    private boolean canClaim(Animal animal) {
+        if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal) {
+            return hasBreedingFoodFor(animal) &&
+                    !claimedAnimal.smartbreedingtroughs$isClaimed() &&
+                    canPathToTrough(animal);
         }
-
         return false;
+    }
+
+    private boolean canPathToTrough(Animal animal) {
+        Path path = animal.getNavigation().createPath(this.worldPosition, 0);
+        return path != null && path.canReach();
     }
 
     @Override
@@ -306,4 +350,6 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
     public @Nullable AbstractContainerMenu createMenu(int containerId, @NonNull Inventory inventory, @NonNull Player player) {
         return new SmartBreedingTroughMenu(containerId, inventory, this);
     }
+
+
 }

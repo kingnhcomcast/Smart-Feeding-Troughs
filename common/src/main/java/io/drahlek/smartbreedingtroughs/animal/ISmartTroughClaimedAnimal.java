@@ -17,4 +17,6 @@ public interface ISmartTroughClaimedAnimal {
     SmartBreedingTroughBlockEntity smartbreedingtroughs$getClaimedTrough(Level level);
 
     void smartbreedingtroughs$playEatingSound();
+
+    boolean smartbreedingtroughs$isClaimed();
 }

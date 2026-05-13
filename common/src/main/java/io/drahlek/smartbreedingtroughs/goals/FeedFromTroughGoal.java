@@ -89,7 +89,12 @@ public class FeedFromTroughGoal extends Goal {
                 troughPos.getZ() + 0.5D,
                 SPEED
         )) {
-            troughAnimal.smartbreedingtroughs$releaseClaim();
+            SmartBreedingTroughBlockEntity trough = troughAnimal.smartbreedingtroughs$getClaimedTrough(animal.level());
+            if (trough != null) {
+                trough.releaseAnimal(animal);
+            } else {
+                troughAnimal.smartbreedingtroughs$releaseClaim();
+            }
         }
     }
 
@@ -100,8 +105,20 @@ public class FeedFromTroughGoal extends Goal {
 
     private boolean claimedTroughStillValid() {
         BlockPos troughPos = troughAnimal.smartbreedingtroughs$getClaimedTroughPos();
-        return troughPos != null
-                && animal.level().getBlockEntity(troughPos) instanceof SmartBreedingTroughBlockEntity trough
-                && trough.hasBreedingFoodFor(animal);
+        if (troughPos == null) {
+            return false;
+        }
+
+        if (!(animal.level().getBlockEntity(troughPos) instanceof SmartBreedingTroughBlockEntity trough)) {
+            troughAnimal.smartbreedingtroughs$releaseClaim();
+            return false;
+        }
+
+        if (!trough.hasBreedingFoodFor(animal)) {
+            trough.releaseAnimal(animal);
+            return false;
+        }
+
+        return true;
     }
 }

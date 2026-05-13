@@ -67,4 +67,9 @@ public abstract class AnimalMixin extends AgeableMob implements ISmartTroughClai
 
         return null;
     }
+
+    @Override
+    public boolean smartbreedingtroughs$isClaimed() {
+        return this.smartbreedingtroughs$claimedTroughPos != null;
+    }
 }
