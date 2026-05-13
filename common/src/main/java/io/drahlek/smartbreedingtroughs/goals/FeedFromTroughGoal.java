@@ -81,9 +81,9 @@ public class FeedFromTroughGoal extends Goal {
         } else {
             //add some randomness if they feed, to avoid all of them coming at trough at the exact same time
             float feedChance = SmartBreedingTroughConfig.data().getFeedChance();
-            Constants.LOG.info("Feed chance: {}", feedChance);
+            Constants.LOG.debug("Feed chance: {}", feedChance);
             if (animal.getRandom().nextFloat() >= feedChance) {
-                Constants.LOG.info("Feed chance failed for {}:{}", animal.getName().getString(), animal.getId());
+                Constants.LOG.debug("Feed chance failed for {}:{}", animal.getName().getString(), animal.getId());
                 this.feedChanceCooldown = FEED_CHANCE_COOLDOWN;
                 return;
             }

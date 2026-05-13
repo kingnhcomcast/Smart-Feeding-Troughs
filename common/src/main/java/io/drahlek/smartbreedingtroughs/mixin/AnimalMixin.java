@@ -6,6 +6,8 @@ import io.drahlek.smartbreedingtroughs.goals.FeedFromTroughGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.ai.goal.TemptGoal;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
@@ -35,9 +37,17 @@ public abstract class AnimalMixin extends AgeableMob implements ISmartTroughClai
             Level level,
             CallbackInfo ci
     ) {
+        //we should insert this goal at the same priority as TemptGoal if present which may be different for each animal
+        int priority = 3;
         Animal animal = (Animal) (Object) this;
-        // TODO dynamically determine priority.
-        this.goalSelector.addGoal(3, new FeedFromTroughGoal(animal));
+        for (WrappedGoal goal : this.goalSelector.getAvailableGoals()) {
+            if (goal.getGoal() instanceof TemptGoal) {
+                priority = goal.getPriority();
+                break;
+            }
+        }
+
+        this.goalSelector.addGoal(priority, new FeedFromTroughGoal(animal));
     }
 
     @Override

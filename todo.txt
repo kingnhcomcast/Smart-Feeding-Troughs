@@ -37,18 +37,17 @@
 * killing mobs does not release claim
 * babies are not counted against cap
 * need a separate tick count to do the feed. if they walk to trough and walk away before feeding, they wont feed until they walk back
-- data is just stored on class, need to persist it instead
 * implement feed chance
 * remove animals that are out of range, changed worlds, cant path
 * dont feed if no other mate is nearby
-- remove log statements
-- should config still be feed interval? it is really how often trough checks for new animal to claim.
-- dynamic goal priority
-- look through all todos
+* remove log statements
+* should config still be feed interval? it is really how often trough checks for new animal to claim.
+* dynamic goal priority
+* look through all todos
 
 nice to have
 - stop them from standing on top of trough to feed, just walk 1 block away
-
+- data is just stored on class, need to persist it instead (not causing a bug, as things get reclaimed anyway on load)
 
 1.1
 - trough

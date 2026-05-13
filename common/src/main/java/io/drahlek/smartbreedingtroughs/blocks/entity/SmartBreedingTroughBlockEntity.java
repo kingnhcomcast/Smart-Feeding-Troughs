@@ -50,7 +50,7 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
             return;
         }
 
-        int feedcheckInterval = Math.max(1, SmartBreedingTroughConfig.data().getFeedcheckInterval());
+        int feedcheckInterval = Math.max(1, SmartBreedingTroughConfig.data().getTroughClaimCheckInterval());
         if (level.getGameTime() % feedcheckInterval != 0) {
             return;
         }
@@ -59,20 +59,20 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
     }
 
     private void feedCheck(Level level) {
-        Constants.LOG.info("Feed check started");
+        Constants.LOG.debug("Feed check started");
 
         //verify claimed animals
         verifyClaimedAnimals();
 
         //if trough is empty or we are at max cap, release claim on all animals
         if(isEmpty()) {
-            Constants.LOG.info("Trough is empty");
+            Constants.LOG.debug("Trough is empty");
             return;
         }
 
         //check max capacity and exit to avoid needless computation
         if (isAtMaxCapacity()) {
-            Constants.LOG.info("Trough is at max capacity");
+            Constants.LOG.debug("Trough is at max capacity");
             return;
         }
 
@@ -106,7 +106,7 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
 
         ItemStack consumedFood = consumeFoodFor(animal);
         if (!consumedFood.isEmpty()) {
-            Constants.LOG.info("Feeding {}({})", animal.getName().getString(), animal.getId());
+            Constants.LOG.debug("Feeding {}({})", animal.getName().getString(), animal.getId());
             animal.setInLove(null);
             claimedAnimal.smartbreedingtroughs$playEatingSound();
         }
@@ -160,7 +160,6 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
 
     }
 
-    //TODO do we check max range if they are way to far away?
     private void verifyClaimedAnimals() {
         int range = SmartBreedingTroughConfig.data().getRange();
         AABB claimArea = new AABB(this.worldPosition).inflate(range);
@@ -184,7 +183,7 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
 
             return remove;
         });
-        Constants.LOG.info("Claimed animals size {}", animals.size());
+        Constants.LOG.debug("Claimed animals size {}", animals.size());
     }
 
 
@@ -203,7 +202,7 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
         //get all animals that are in range
         for (Animal animal : level.getEntitiesOfClass(Animal.class, area, this::canClaim)) {
             if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal && !claimedAnimal.smartbreedingtroughs$isClaimed()) {
-                Constants.LOG.info("Claimed animal {}({})", animal.getDisplayName().getString(), animal.getId());
+                Constants.LOG.debug("Claimed animal {}({})", animal.getDisplayName().getString(), animal.getId());
                 animals.add(animal);
                 claimedAnimal.smartbreedingtroughs$claim(this);
                 if (animals.size() >= maxAnimals) {
