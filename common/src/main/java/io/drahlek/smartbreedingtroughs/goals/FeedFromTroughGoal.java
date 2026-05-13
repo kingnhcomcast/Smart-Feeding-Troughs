@@ -33,7 +33,16 @@ public class FeedFromTroughGoal extends Goal {
                 && troughAnimal.smartbreedingtroughs$getClaimedTroughPos() != null
                 && animal.getAge() == 0
                 && animal.canFallInLove()
-                && claimedTroughStillValid();
+                && claimedTroughStillValid()
+                && isNearbyMate();
+    }
+
+    private boolean isNearbyMate() {
+        SmartBreedingTroughBlockEntity trough = troughAnimal.smartbreedingtroughs$getClaimedTrough(animal.level());
+        if (trough != null) {
+            return trough.isMateAvailable(animal);
+        }
+        return false;
     }
 
     @Override

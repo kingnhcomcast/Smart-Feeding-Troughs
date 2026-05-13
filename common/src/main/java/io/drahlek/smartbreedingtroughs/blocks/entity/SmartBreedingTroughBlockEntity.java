@@ -58,23 +58,6 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
         trough.feedCheck(level);
     }
 
-    /**
-     *     - locate and claim breedable animals that are
-     *         in range
-     *         can path to trough
-     *         not yet claimed
-     *         adult
-     *     -  every feedcheck if not empty
-     *         - verify claimed animals still alive, in range and if not release claim
-     *         - claim new animals until count = config.maxFeedCount
-     *         - for each claimed animal if
-     *             trough contains correct animal.food and
-     *             at least 2 available of same type and    <===== TODO
-     *             - config.feedChance
-     *                 - walk to trough (if can't path, release claim)
-     *                 - consume food
-     *                 - breed
-     */
     private void feedCheck(Level level) {
         Constants.LOG.info("Feed check started");
 
@@ -208,7 +191,7 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
     /**
      *
      *         in range
-     *         can path to trough  <==== TODO
+     *         can path to trough
      *         not yet claimed by another trough
      *         adult
      *         */
@@ -353,5 +336,15 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
         return new SmartBreedingTroughMenu(containerId, inventory, this);
     }
 
-
+    public boolean isMateAvailable(Animal animal) {
+        for(Animal mate : animals) {
+            if (mate != animal
+                    && mate.getClass() == animal.getClass()
+                    && animal.getAge() == 0
+                    && animal.canFallInLove()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

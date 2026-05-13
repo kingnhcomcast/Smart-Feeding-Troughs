@@ -40,8 +40,11 @@
 - data is just stored on class, need to persist it instead
 * implement feed chance
 * remove animals that are out of range, changed worlds, cant path
-- dont feed if no other mate is nearby
+* dont feed if no other mate is nearby
 - remove log statements
+- should config still be feed interval? it is really how often trough checks for new animal to claim.
+- dynamic goal priority
+- look through all todos
 
 nice to have
 - stop them from standing on top of trough to feed, just walk 1 block away
