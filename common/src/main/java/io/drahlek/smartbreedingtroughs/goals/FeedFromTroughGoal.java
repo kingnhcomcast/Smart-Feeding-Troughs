@@ -1,7 +1,9 @@
 package io.drahlek.smartbreedingtroughs.goals;
 
+import io.drahlek.smartbreedingtroughs.Constants;
 import io.drahlek.smartbreedingtroughs.animal.ISmartTroughClaimedAnimal;
 import io.drahlek.smartbreedingtroughs.blocks.entity.SmartBreedingTroughBlockEntity;
+import io.drahlek.smartbreedingtroughs.config.SmartBreedingTroughConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.Animal;
@@ -12,10 +14,12 @@ import java.util.EnumSet;
 public class FeedFromTroughGoal extends Goal {
     private static final double SPEED = 1.0D;
     private static final int REPATH_INTERVAL = 20;
+    private static final int FEED_CHANCE_COOLDOWN = 40;
 
     private final Animal animal;
     private final ISmartTroughClaimedAnimal troughAnimal;
     private int repathCooldown;
+    private int feedChanceCooldown;
 
     public FeedFromTroughGoal(Animal animal) {
         this.animal = animal;
@@ -40,10 +44,15 @@ public class FeedFromTroughGoal extends Goal {
     @Override
     public void start() {
         this.repathCooldown = 0;
+        this.feedChanceCooldown = 0;
     }
 
     @Override
     public void tick() {
+        if(feedChanceCooldown-- > 0) {
+            return;
+        }
+
         BlockPos troughPos = troughAnimal.smartbreedingtroughs$getClaimedTroughPos();
         if (troughPos == null) {
             return;
@@ -61,6 +70,15 @@ public class FeedFromTroughGoal extends Goal {
                 trough.feedAnimal(animal);
             }
         } else {
+            //add some randomness if they feed, to avoid all of them coming at trough at the exact same time
+            float feedChance = SmartBreedingTroughConfig.data().getFeedChance();
+            Constants.LOG.info("Feed chance: {}", feedChance);
+            if (animal.getRandom().nextFloat() >= feedChance) {
+                Constants.LOG.info("Feed chance failed for {}:{}", animal.getName().getString(), animal.getId());
+                this.feedChanceCooldown = FEED_CHANCE_COOLDOWN;
+                return;
+            }
+
             moveToTrough();
         }
     }
@@ -119,6 +137,6 @@ public class FeedFromTroughGoal extends Goal {
             return false;
         }
 
-        return true;
+        return !trough.isAtMaxCapacity();
     }
 }

@@ -88,15 +88,17 @@ public class SmartBreedingTroughBlockEntity extends BlockEntity implements World
         }
 
         //check max capacity and exit to avoid needless computation
-        if (isAtMaxCapacity()) return;
+        if (isAtMaxCapacity()) {
+            Constants.LOG.info("Trough is at max capacity");
+            return;
+        }
 
         //locate animals
         claimAnimals(level);
     }
 
-    private boolean isAtMaxCapacity() {
+    public boolean isAtMaxCapacity() {
         if(animals.size() >= SmartBreedingTroughConfig.data().getMaxClaimedAnimals()) {
-            Constants.LOG.info("Trough is at max capacity");
             return true;
         }
         return false;
