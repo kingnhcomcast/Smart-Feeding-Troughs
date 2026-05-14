@@ -14,6 +14,6 @@ public class SmartFeedingTroughConfigData {
     @ConfigSetting(value = "troughClaimCheckInterval", min = 1, defaultValue = "600") //30 second default
     private int troughClaimCheckInterval = 600;
 
-    @ConfigSetting(value = "feedChance", min = 0.01f, max = 1f, defaultValue = "0.25f")
-    private float feedChance = 0.25f;
+    @ConfigSetting(value = "feedChance", min = 0.01f, max = 1f, defaultValue = "0.50f")
+    private float feedChance = 0.50f;
 }
