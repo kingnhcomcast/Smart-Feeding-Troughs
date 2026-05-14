@@ -44,7 +44,7 @@ neoForge {
             client()
         }
         data {
-            clientData()
+            serverData()
 
             // DataGen can be run by - "./gradlew :neoforge:runData" in Terminal.
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
@@ -76,8 +76,11 @@ dependencies {
     commonClientJava project(path: ':common', configuration: 'commonClientJava')
     commonClientResources project(path: ':common', configuration: 'commonClientResources')
 
+    // This resolves to Dirigo's neoforge module through the composite build in settings.gradle.
     implementation "io.drahlek:neoforge:${dirigo_min_version}"
-    implementation("io.drahlek:common:${dirigo_min_version}") {
+
+    // Dirigo common is provided at runtime by the Dirigo NeoForge mod artifact.
+    compileOnly("io.drahlek:common:${dirigo_min_version}") {
         attributes {
             attribute(loaderAttribute, 'common')
         }

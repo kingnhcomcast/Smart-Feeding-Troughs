@@ -31,12 +31,14 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
+    modCompileOnly(dirigoFabricDevJar)
     modRuntimeOnly(dirigoFabricDevJar)
     runtimeOnly "org.reflections:reflections:${dirigoReflectionsVersion}"
     runtimeOnly "org.javassist:javassist:3.28.0-GA"
     runtimeOnly "com.google.code.findbugs:jsr305:3.0.2"
 
     def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+    // Dirigo common is provided at runtime by the Dirigo Fabric mod artifact.
     compileOnly("io.drahlek:common:${dirigo_min_version}") {
         attributes {
             attribute(loaderAttribute, 'common')
@@ -81,6 +83,12 @@ loom {
             ideConfigGenerated(true)
             runDir('runs/server')
         }
+    }
+}
+
+fabricApi {
+    configureDataGeneration() {
+        client = true
     }
 }
 

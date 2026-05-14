@@ -24,3 +24,6 @@ run
 runs
 .tmp/*
 .tmp*/*
+/fabric/src/main/generated/*
+/neoforge/src/generated/*
+/neoforge/src/generated/resources/data/smartfeedingtroughs/recipe/smart_trough.json

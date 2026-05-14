@@ -45,6 +45,18 @@ afterEvaluate {
         }
     }
 
+    tasks.named('runDatagen') {
+        dependsOn(tasks.named('jar'))
+        doFirst {
+            def developmentModPaths = resolveDevelopmentModPaths()
+            def datagenDevelopmentModPaths = [
+                developmentModPaths,
+                tasks.named('jar').get().archiveFile.get().asFile.absolutePath
+            ].findAll { !it.isBlank() }.join(File.pathSeparator)
+            systemProperty('fabric.addMods', datagenDevelopmentModPaths)
+        }
+    }
+
     tasks.named('runServer') {
         doFirst {
             systemProperty('fabric.addMods', resolveDevelopmentModPaths())
