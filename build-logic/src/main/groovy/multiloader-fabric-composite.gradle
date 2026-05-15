@@ -25,41 +25,77 @@ configurations.named('runtimeOnly') {
 }
 
 afterEvaluate {
+    def joinPaths = { Collection<String> paths ->
+        paths.findAll { it != null && !it.isBlank() }
+            .unique()
+            .join(File.pathSeparator)
+    }
+    def splitPaths = { String paths ->
+        if (paths == null || paths.isBlank()) {
+            return []
+        }
+        paths.split(java.util.regex.Pattern.quote(File.pathSeparator)) as List<String>
+    }
+    def resolveConfigurationFiles = { String configurationName ->
+        def configuration = configurations.findByName(configurationName)
+        if (configuration == null || !configuration.canBeResolved) {
+            return []
+        }
+        configuration.files.findAll { it.exists() && it.name.endsWith('.jar') }
+    }
     def resolveDevelopmentModPaths = {
         // Fabric Loader needs explicit mod candidate paths for included-build mods in dev runs.
         configurations.developmentFabricMods.files
             .findAll { it.exists() }
             .collect { it.absolutePath }
-            .join(File.pathSeparator)
+    }
+    def resolveRuntimeModPaths = { String mappedModConfigurationName, String runtimeConfigurationName ->
+        def runtimeFabricModPaths = resolveConfigurationFiles('modCompileClasspath')
+            .findAll {
+                def normalizedPath = it.absolutePath.replace('\\', '/')
+                it.name.startsWith('fabric-loader-') ||
+                    normalizedPath.contains('/net.fabricmc.fabric-api/')
+            }
+            .collect { it.absolutePath }
+        runtimeFabricModPaths
+    }
+    def appendDevelopmentModPaths = { task, Collection<String> developmentModPaths ->
+        def mergedModPaths = joinPaths(splitPaths(task.systemProperties.get('fabric.addMods')?.toString()) + developmentModPaths)
+        if (!mergedModPaths.isBlank()) {
+            task.systemProperty('fabric.addMods', mergedModPaths)
+        }
     }
 
     tasks.named('runClient') {
         dependsOn(tasks.named('jar'))
         doFirst {
-            def developmentModPaths = resolveDevelopmentModPaths()
             def clientDevelopmentModPaths = [
-                developmentModPaths,
+                *resolveRuntimeModPaths('modRuntimeClasspathClientMapped', 'clientRuntimeClasspath'),
+                *resolveDevelopmentModPaths(),
                 tasks.named('jar').get().archiveFile.get().asFile.absolutePath
-            ].findAll { !it.isBlank() }.join(File.pathSeparator)
-            systemProperty('fabric.addMods', clientDevelopmentModPaths)
+            ]
+            appendDevelopmentModPaths(it, clientDevelopmentModPaths)
         }
     }
 
     tasks.named('runDatagen') {
         dependsOn(tasks.named('jar'))
         doFirst {
-            def developmentModPaths = resolveDevelopmentModPaths()
             def datagenDevelopmentModPaths = [
-                developmentModPaths,
+                *resolveRuntimeModPaths('modRuntimeClasspathMainMapped', 'runtimeClasspath'),
+                *resolveDevelopmentModPaths(),
                 tasks.named('jar').get().archiveFile.get().asFile.absolutePath
-            ].findAll { !it.isBlank() }.join(File.pathSeparator)
-            systemProperty('fabric.addMods', datagenDevelopmentModPaths)
+            ]
+            appendDevelopmentModPaths(it, datagenDevelopmentModPaths)
         }
     }
 
     tasks.named('runServer') {
         doFirst {
-            systemProperty('fabric.addMods', resolveDevelopmentModPaths())
+            appendDevelopmentModPaths(
+                it,
+                resolveRuntimeModPaths('modRuntimeClasspathMainMapped', 'runtimeClasspath') + resolveDevelopmentModPaths()
+            )
         }
     }
 }

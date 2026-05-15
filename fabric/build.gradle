@@ -13,6 +13,18 @@ configurations {
     }
 }
 
+configurations.configureEach { cfg ->
+    if (cfg.name == 'clientImplementation') {
+        cfg.extendsFrom(configurations.implementation)
+    }
+    if (cfg.name == 'clientCompileOnly') {
+        cfg.extendsFrom(configurations.compileOnly)
+    }
+    if (cfg.name == 'clientRuntimeOnly') {
+        cfg.extendsFrom(configurations.runtimeOnly)
+    }
+}
+
 repositories {
     maven { url "https://maven.terraformersmc.com/releases/" }
     maven { url "https://maven.nucleoid.xyz/" }
@@ -21,6 +33,10 @@ repositories {
 def dirigoFabricDevJar = files(rootProject.file("../Dirigo/fabric/build/devlibs/dirigo-fabric-${minecraft_version}-${dirigo_min_version}-dev.jar"))
 def dirigoReflectionsVersion = "0.10.2"
 def dirigoIncludedBuild = gradle.includedBuilds.find { it.name == 'Dirigo' || it.name == 'dirigo' }
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+if (dirigoIncludedBuild != null) {
+    dirigoFabricDevJar.builtBy(dirigoIncludedBuild.task(':fabric:jar'))
+}
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
@@ -31,13 +47,12 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-    modCompileOnly(dirigoFabricDevJar)
-    modRuntimeOnly(dirigoFabricDevJar)
+    compileOnly(dirigoFabricDevJar)
+    developmentModRuntimeOnly(dirigoFabricDevJar)
     runtimeOnly "org.reflections:reflections:${dirigoReflectionsVersion}"
     runtimeOnly "org.javassist:javassist:3.28.0-GA"
     runtimeOnly "com.google.code.findbugs:jsr305:3.0.2"
 
-    def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
     // Dirigo common is provided at runtime by the Dirigo Fabric mod artifact.
     compileOnly("io.drahlek:common:${dirigo_min_version}") {
         attributes {
@@ -102,7 +117,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 // Implement mcgradleconventions loader attribute
-def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
 ['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements', 'includeInternal', 'modCompileClasspath'].each { variant ->
     configurations.named("$variant") {
         attributes {
@@ -124,6 +138,24 @@ tasks.register("copyExtraJars", Copy) {
     from("${projectDir}/extraJars")
     include("*.jar")
     into(project.file("runs/server/mods"))
+}
+
+tasks.named('assemble') {
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':fabric:assemble'))
+    }
+}
+
+tasks.named('build') {
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':fabric:build'))
+    }
+}
+
+tasks.named('clean') {
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':fabric:clean'))
+    }
 }
 
 tasks.named('runServer') {
