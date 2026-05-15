@@ -4,6 +4,18 @@ plugins {
 }
 
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+def dirigoIncludedBuild = gradle.includedBuilds.find { it.name == 'Dirigo' || it.name == 'dirigo' }
+if (dirigoIncludedBuild != null) {
+    tasks.named('assemble') {
+        dependsOn(dirigoIncludedBuild.task(':neoforge:assemble'))
+    }
+    tasks.named('build') {
+        dependsOn(dirigoIncludedBuild.task(':neoforge:build'))
+    }
+    tasks.named('clean') {
+        dependsOn(dirigoIncludedBuild.task(':neoforge:clean'))
+    }
+}
 
 sourceSets {
     client {

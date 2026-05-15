@@ -1,0 +1,80 @@
+1.0
+* icon
+- readme
+
+* trough block
+    * 4 slot container
+    * recipe
+        S   S       slabs
+        P P P       planks
+    * creative tab
+    * tooltip
+    * change item icon to be isometric
+    * make block bigger
+
+* AI
+    * locate and claim breedable animals that are
+        in range
+        can path to trough
+        not yet claimed
+    *  every feedcheck if not empty
+        * verify claimed animals still alive, in range and if not release claim
+        * claim new animals until count = config.maxFeedCount
+        * for each claimed animal if
+            trough contains correct animal.food and
+            at least 2 available of same type and
+            ready to breed then
+            * config.feedChance
+                * walk to trough (if can't path, release claim)
+                * consume food
+
+* config
+    * range
+    * max claimed animals
+    * feedcheck interval in ticks
+    * feedChance
+
+* killing mobs does not release claim
+* babies are not counted against cap
+* need a separate tick count to do the feed. if they walk to trough and walk away before feeding, they wont feed until they walk back
+* implement feed chance
+* remove animals that are out of range, changed worlds, cant path
+* dont feed if no other mate is nearby
+* remove log statements
+* should config still be feed interval? it is really how often trough checks for new animal to claim.
+* dynamic goal priority
+* look through all todos
+
+nice to have
+- stop them from standing on top of trough to feed, just walk 1 block away
+- data is just stored on class, need to persist it instead (not causing a bug, as things get reclaimed anyway on load)
+
+1.1
+- trough
+    * can pipe items in/out
+    - show food in trough, indicate fullness level
+    - somehow trigger visual indicator of which animals are claimed
+    - animal food only (if possible)
+    - if placed together, combine into 1 - unless shift (work like chests/double chests)
+    - store xp
+
+- AI
+    - if animal hurt, feed and heal
+    - babies feed and grow (lower chance of this happening)
+    - dont feed immedialty when get to trough, wait a second, stand there, look at trough, then eat
+
+- animal
+    - animate feeding - lower head?
+    - feeding particles
+    - modded animals (might work anyway)
+    * eating sound
+
+- config
+    - max feed count per animal type
+    - feed chance per animal type
+    - whitelist/blacklist
+    - override animal food type
+
+- redstone
+    - disable
+    - comparator

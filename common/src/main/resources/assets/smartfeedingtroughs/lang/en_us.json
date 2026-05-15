@@ -1,0 +1,6 @@
+{
+  "block.smartfeedingtroughs.smart_trough": "Smart Trough",
+  "item.smartfeedingtroughs.smart_trough": "Smart Trough",
+
+  "tooltip.smartfeedingtroughs.smart_trough": "Nearby animals will eat from this trough."
+}

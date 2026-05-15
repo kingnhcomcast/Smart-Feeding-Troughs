@@ -3,14 +3,6 @@ plugins {
     id 'fabric-loom'
 }
 
-repositories {
-    maven { url "https://maven.terraformersmc.com/releases/" }
-    maven { url "https://maven.nucleoid.xyz/" }
-}
-
-def dirigoFabricDevJar = files(rootProject.file("../Dirigo/fabric/build/devlibs/dirigo-fabric-${minecraft_version}-${dirigo_min_version}-dev.jar"))
-def dirigoReflectionsVersion = "0.10.2"
-
 configurations {
     commonClientResources {
         canBeResolved = true
@@ -18,11 +10,29 @@ configurations {
     commonClientJava {
         canBeResolved = true
     }
-    fabricRunModCandidates {
-        canBeResolved = true
-        canBeConsumed = false
+}
+
+configurations.configureEach { cfg ->
+    if (cfg.name == 'clientImplementation') {
+        cfg.extendsFrom(configurations.implementation)
+    }
+    if (cfg.name == 'clientCompileOnly') {
+        cfg.extendsFrom(configurations.compileOnly)
+    }
+    if (cfg.name == 'clientRuntimeOnly') {
+        cfg.extendsFrom(configurations.runtimeOnly)
     }
 }
+
+repositories {
+    maven { url "https://maven.terraformersmc.com/releases/" }
+    maven { url "https://maven.nucleoid.xyz/" }
+}
+
+def dirigoFabricDependency = "io.drahlek:fabric:${dirigo_min_version}"
+def dirigoReflectionsVersion = "0.10.2"
+def dirigoIncludedBuild = gradle.includedBuilds.find { it.name == 'Dirigo' || it.name == 'dirigo' }
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
@@ -33,17 +43,19 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
-    // Keep the 1.21.1 compile path, but use Dirigo's named dev jar at runtime so
-    // Fabric does not boot against the intermediary runtime artifact.
-    modRuntimeOnly(dirigoFabricDevJar)
+    compileOnly(dirigoFabricDependency) {
+        capabilities {
+            requireCapability("io.drahlek:dirigo-fabric-${minecraft_version}:${dirigo_min_version}")
+        }
+        attributes {
+            attribute(loaderAttribute, 'fabric')
+        }
+    }
     runtimeOnly "org.reflections:reflections:${dirigoReflectionsVersion}"
     runtimeOnly "org.javassist:javassist:3.28.0-GA"
     runtimeOnly "com.google.code.findbugs:jsr305:3.0.2"
 
-    // Dirigo is supplied at runtime via the Fabric dev jar above. Keep the shared
-    // API on the compile classpath only so IDE task inspection does not eagerly
-    // resolve the included build through clientRuntimeClasspath.
-    def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+    // Dirigo common is provided at runtime by the Dirigo Fabric mod artifact.
     compileOnly("io.drahlek:common:${dirigo_min_version}") {
         attributes {
             attribute(loaderAttribute, 'common')
@@ -98,14 +110,28 @@ def dirigoFabricRemapJar = gradle.includedBuild('Dirigo').task(':fabric:remapJar
 tasks.named('runClient') {
     dependsOn(dirigoFabricRemapJar)
     doFirst {
-        systemProperty('fabric.addMods', ([dirigoFabricJar.absolutePath] + configurations.fabricRunModCandidates.files.collect { it.absolutePath }).join(File.pathSeparator))
+        def existingMods = systemProperties.get('fabric.addMods')?.toString()
+        def modPaths = ([dirigoFabricJar.absolutePath] + (existingMods == null || existingMods.isBlank() ? [] : existingMods.split(java.util.regex.Pattern.quote(File.pathSeparator)) as List<String>))
+            .findAll { it != null && !it.isBlank() }
+            .unique()
+        systemProperty('fabric.addMods', modPaths.join(File.pathSeparator))
     }
 }
 
 tasks.named('runServer') {
     dependsOn(dirigoFabricRemapJar)
     doFirst {
-        systemProperty('fabric.addMods', ([dirigoFabricJar.absolutePath] + configurations.fabricRunModCandidates.files.collect { it.absolutePath }).join(File.pathSeparator))
+        def existingMods = systemProperties.get('fabric.addMods')?.toString()
+        def modPaths = ([dirigoFabricJar.absolutePath] + (existingMods == null || existingMods.isBlank() ? [] : existingMods.split(java.util.regex.Pattern.quote(File.pathSeparator)) as List<String>))
+            .findAll { it != null && !it.isBlank() }
+            .unique()
+        systemProperty('fabric.addMods', modPaths.join(File.pathSeparator))
+    }
+}
+
+fabricApi {
+    configureDataGeneration() {
+        client = true
     }
 }
 
@@ -119,7 +145,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 // Implement mcgradleconventions loader attribute
-def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
 ['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements', 'includeInternal', 'modCompileClasspath'].each { variant ->
     configurations.named("$variant") {
         attributes {
@@ -143,6 +168,24 @@ tasks.register("copyExtraJars", Copy) {
     into(project.file("runs/server/mods"))
 }
 
+tasks.named('assemble') {
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':fabric:assemble'))
+    }
+}
+
+tasks.named('build') {
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':fabric:build'))
+    }
+}
+
+tasks.named('clean') {
+    if (dirigoIncludedBuild != null) {
+        dependsOn(dirigoIncludedBuild.task(':fabric:clean'))
+    }
+}
+
 tasks.named('runServer') {
     dependsOn 'copyExtraJars'
 }
@@ -164,4 +207,15 @@ tasks.named('runClient') {
 
 tasks.named('runServer') {
     dependsOn(gradle.includedBuild('Dirigo').task(':fabric:jar'))
+}
+
+tasks.named('runDatagen') {
+    dependsOn(dirigoFabricRemapJar)
+    doFirst {
+        def existingMods = systemProperties.get('fabric.addMods')?.toString()
+        def modPaths = ([dirigoFabricJar.absolutePath] + (existingMods == null || existingMods.isBlank() ? [] : existingMods.split(java.util.regex.Pattern.quote(File.pathSeparator)) as List<String>))
+                .findAll { it != null && !it.isBlank() }
+                .unique()
+        systemProperty('fabric.addMods', modPaths.join(File.pathSeparator))
+    }
 }

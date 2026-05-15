@@ -46,12 +46,17 @@ plugins {
 }
 
 // This should match the folder name of the project, or else IDEA may complain (see https://youtrack.jetbrains.com/issue/IDEA-317606)
-rootProject.name = 'ExampleMod'
-includeBuild('../Dirigo') {
-    dependencySubstitution {
-        substitute(module('io.drahlek:common')).using(project(':common'))
-        substitute(module('io.drahlek:fabric')).using(project(':fabric'))
-        substitute(module('io.drahlek:neoforge')).using(project(':neoforge'))
+rootProject.name = 'SmartFeedingTroughs'
+
+def dirigoCandidates = ['../Dirigo', '../dirigo']
+def dirigoPath = dirigoCandidates.find { file(it).exists() }
+if (dirigoPath != null) {
+    includeBuild(dirigoPath) {
+        dependencySubstitution {
+            substitute(module('io.drahlek:common')).using(project(':common'))
+            substitute(module('io.drahlek:fabric')).using(project(':fabric'))
+            substitute(module('io.drahlek:neoforge')).using(project(':neoforge'))
+        }
     }
 }
 include('common')
