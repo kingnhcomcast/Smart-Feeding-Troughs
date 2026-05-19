@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column_horizontal",
+  "textures": {
+    "end": "smartfeedingtroughs:block/edible_hay_block_top",
+    "side": "smartfeedingtroughs:block/edible_hay_block_side"
+  }
+}

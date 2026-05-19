@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "axis=x": { "model": "smartfeedingtroughs:block/edible_hay_block_horizontal", "x": 90, "y": 90 },
+    "axis=y": { "model": "smartfeedingtroughs:block/edible_hay_block" },
+    "axis=z": { "model": "smartfeedingtroughs:block/edible_hay_block_horizontal", "x": 90 }
+  }
+}
