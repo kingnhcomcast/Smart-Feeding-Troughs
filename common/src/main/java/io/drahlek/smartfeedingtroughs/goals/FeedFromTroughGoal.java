@@ -73,7 +73,7 @@ public class FeedFromTroughGoal extends Goal {
                 troughPos.getZ() + 0.5D
         );
 
-        if (isCloseEnoughToEat()) {
+        if (isCloseEnoughToEat() && isNearbyMate()) {
             SmartFeedingTroughBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
             if (trough != null) {
                 trough.feedAnimal(animal);
@@ -81,7 +81,6 @@ public class FeedFromTroughGoal extends Goal {
         } else {
             //add some randomness if they feed, to avoid all of them coming at trough at the exact same time
             float feedChance = SmartFeedingTroughConfig.data().getFeedChance();
-            Constants.LOG.debug("Feed chance: {}", feedChance);
             if (animal.getRandom().nextFloat() >= feedChance) {
                 Constants.LOG.debug("Feed chance failed for {}:{}", animal.getName().getString(), animal.getId());
                 this.feedChanceCooldown = FEED_CHANCE_COOLDOWN;

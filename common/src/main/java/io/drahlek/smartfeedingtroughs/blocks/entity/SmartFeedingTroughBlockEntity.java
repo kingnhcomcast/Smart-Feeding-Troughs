@@ -58,7 +58,7 @@ public class SmartFeedingTroughBlockEntity extends BlockEntity implements Worldl
         trough.feedCheck(level);
     }
 
-    private void feedCheck(Level level) {
+    public void feedCheck(Level level) {
         Constants.LOG.debug("Feed check started");
 
         //verify claimed animals
@@ -91,7 +91,8 @@ public class SmartFeedingTroughBlockEntity extends BlockEntity implements Worldl
         if (!animals.contains(animal)
                 || !(animal instanceof ISmartTroughClaimedAnimal claimedAnimal)
                 || animal.getAge() != 0
-                || !animal.canFallInLove()) {
+                || !animal.canFallInLove()
+                || !isMateAvailable(animal)) {
             return;
         }
 
@@ -338,9 +339,10 @@ public class SmartFeedingTroughBlockEntity extends BlockEntity implements Worldl
     public boolean isMateAvailable(Animal animal) {
         for(Animal mate : animals) {
             if (mate != animal
+                    && mate.isAlive()
                     && mate.getClass() == animal.getClass()
-                    && animal.getAge() == 0
-                    && animal.canFallInLove()) {
+                    && mate.getAge() == 0
+                    && (mate.isInLove() || (mate.canFallInLove() && hasFeedingFoodFor(mate)))) {
                 return true;
             }
         }

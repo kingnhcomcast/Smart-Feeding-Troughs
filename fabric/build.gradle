@@ -68,6 +68,8 @@ loom {
             runDir('runs/server')
         }
     }
+
+    log4jConfigs.from "log4j-dev.xml"
 }
 
 fabricApi {

@@ -7,7 +7,7 @@ public class Constants {
 
 	public static final String MOD_ID = "smartfeedingtroughs";
 	public static final String MOD_NAME = "SmartFeedingTroughs";
-	public static final Logger LOG = LoggerFactory.getLogger(MOD_NAME);
+	public static final Logger LOG = LoggerFactory.getLogger(MOD_ID);
 
 	public static final String GROUP = "io.drahlek.smartfeedingtroughs";
 }
