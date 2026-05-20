@@ -1,6 +1,8 @@
 package io.drahlek.smartfeedingtroughs.blocks.entity;
 
 import com.google.common.collect.Lists;
+import io.drahlek.dirigo.annotation.BlockEntity;
+import io.drahlek.dirigo.registrars.BlockEntityRegistrar;
 import io.drahlek.smartfeedingtroughs.animal.ISmartTroughClaimedAnimal;
 import io.drahlek.smartfeedingtroughs.Constants;
 import io.drahlek.smartfeedingtroughs.blocks.SmartFeedingTroughBlock;
@@ -24,7 +26,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.storage.ValueInput;
@@ -36,13 +37,14 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-public class SmartFeedingTroughBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
+@BlockEntity(id = SmartFeedingTroughBlock.NAME)
+public class SmartFeedingTroughBlockEntity extends FeedingBlockEntity implements WorldlyContainer, MenuProvider {
     private static final int[] SLOTS = {0, 1, 2, 3};
     private NonNullList<ItemStack> items = NonNullList.withSize(SmartFeedingTroughBlock.SLOT_COUNT, ItemStack.EMPTY);
     private List<Animal> animals = Lists.newArrayList();
 
     public SmartFeedingTroughBlockEntity(BlockPos blockPos, BlockState blockState) {
-        super(SmartFeedingTroughBlockEntityTypes.smartFeedingTrough(), blockPos, blockState);
+        super(BlockEntityRegistrar.get(SmartFeedingTroughBlock.NAME, SmartFeedingTroughBlockEntity.class), blockPos, blockState);
     }
 
     public static void tick(Level level, BlockPos blockPos, BlockState blockState, SmartFeedingTroughBlockEntity trough) {

@@ -1,10 +1,10 @@
 package io.drahlek.smartfeedingtroughs;
 
 import com.mojang.brigadier.CommandDispatcher;
+import io.drahlek.dirigo.registrars.BlockEntityRegistrar;
 import io.drahlek.dirigo.registrars.CommandRegistrar;
 import io.drahlek.dirigo.registrars.ItemRegistrar;
 import io.drahlek.smartfeedingtroughs.blocks.SmartFeedingTroughMenu;
-import io.drahlek.smartfeedingtroughs.blocks.entity.SmartFeedingTroughBlockEntityTypes;
 import io.drahlek.dirigo.registrars.BlockRegistrar;
 import io.drahlek.smartfeedingtroughs.config.SmartFeedingTroughConfig;
 import net.minecraft.commands.CommandSourceStack;
@@ -15,6 +15,7 @@ import net.minecraft.commands.CommandSourceStack;
 // however it will be compatible with all supported mod loaders.
 public class SmartFeedingTroughCommon {
     public static final String BLOCKS_PACKAGE = Constants.GROUP + ".blocks";
+    public static final String BLOCK_ENTITIES_PACKAGE = Constants.GROUP + ".blocks.entity";
     public static final String ITEMS_PACKAGE = Constants.GROUP + ".items";
 
     // The loader specific projects are able to import and use any code from the common project. This allows you to
@@ -24,7 +25,7 @@ public class SmartFeedingTroughCommon {
         Constants.LOG.info("{} Common Initialize", Constants.MOD_NAME);
         SmartFeedingTroughConfig.instance();
         SmartFeedingTroughMenu.register();
-        SmartFeedingTroughBlockEntityTypes.register();
+        BlockEntityRegistrar.registerBlockEntities(Constants.MOD_ID, BLOCK_ENTITIES_PACKAGE);
         BlockRegistrar.registerBlocks(Constants.MOD_ID, BLOCKS_PACKAGE);
         ItemRegistrar.registerItems(Constants.MOD_ID, ITEMS_PACKAGE);
     }
