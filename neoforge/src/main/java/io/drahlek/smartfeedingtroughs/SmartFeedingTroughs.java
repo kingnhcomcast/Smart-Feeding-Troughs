@@ -2,11 +2,11 @@ package io.drahlek.smartfeedingtroughs;
 
 
 import io.drahlek.dirigo.services.NeoForgeBlockRegistrar;
+import io.drahlek.dirigo.services.NeoForgeBlockEntityTypeRegistrar;
 import io.drahlek.dirigo.services.NeoForgeItemRegistrar;
 import io.drahlek.dirigo.services.NeoForgeMenuTypeRegistrar;
 import io.drahlek.dirigo.services.Services;
 import io.drahlek.smartfeedingtroughs.datagen.DataGenerators;
-import io.drahlek.smartfeedingtroughs.platform.NeoForgeBlockEntityTypeRegistrar;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
@@ -20,7 +20,7 @@ public class SmartFeedingTroughs {
 
         Constants.LOG.info("{} Main Initialize", Constants.MOD_NAME);
         eventBus.addListener(DataGenerators::gatherData);
-        if (io.drahlek.smartfeedingtroughs.platform.Services.BLOCK_ENTITY_TYPE_REGISTRAR instanceof NeoForgeBlockEntityTypeRegistrar registrar) {
+        if (Services.BLOCK_ENTITY_TYPE_REGISTRAR instanceof NeoForgeBlockEntityTypeRegistrar registrar) {
             registrar.initialize(eventBus, Constants.MOD_ID);
         }
         if (Services.MENU_TYPE_REGISTRAR instanceof NeoForgeMenuTypeRegistrar registrar) {
