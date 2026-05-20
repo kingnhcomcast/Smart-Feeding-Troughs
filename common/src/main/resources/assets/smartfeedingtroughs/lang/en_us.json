@@ -1,6 +1,10 @@
 {
   "block.smartfeedingtroughs.smart_trough": "Smart Trough",
-  "item.smartfeedingtroughs.smart_trough": "Smart Trough",
+  "block.smartfeedingtroughs.edible_hay_block": "Edible Hay Bale",
 
-  "tooltip.smartfeedingtroughs.smart_trough": "Nearby animals will eat from this trough."
+  "item.smartfeedingtroughs.smart_trough": "Smart Trough",
+  "item.smartfeedingtroughs.edible_hay_block": "Edible Hay Bale",
+
+  "tooltip.smartfeedingtroughs.smart_trough": "Nearby animals will eat from this trough.",
+  "tooltip.smartfeedingtroughs.edible_hay_block": "Animals that eat wheat can feed directly from this block."
 }

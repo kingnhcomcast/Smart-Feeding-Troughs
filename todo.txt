@@ -8,8 +8,8 @@ bugs:
     * shear vanilla block to make edible block
     - when broken, drops #wheat equal to number of feeds left
     * add sound when changing
-    - fix item texture (in creative tab/inventory)
-    - creative tab tooltip
+    * fix item texture (in creative tab/inventory)
+    * creative tab tooltip
 
 - feeding polish
     - stop them from standing on top of trough to feed, just walk 1 block away
