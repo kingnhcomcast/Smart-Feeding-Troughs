@@ -1,7 +1,7 @@
 package io.drahlek.smartfeedingtroughs.mixin;
 
 import io.drahlek.smartfeedingtroughs.animal.ISmartTroughClaimedAnimal;
-import io.drahlek.smartfeedingtroughs.blocks.entity.SmartFeedingTroughBlockEntity;
+import io.drahlek.smartfeedingtroughs.blocks.entity.FeedingBlockEntity;
 import net.minecraft.world.entity.ai.goal.BreedGoal;
 import net.minecraft.world.entity.animal.Animal;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,8 +31,9 @@ public class BreedGoalMixin {
             return;
         }
 
-        SmartFeedingTroughBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(this.animal.level());
+        FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(this.animal.level());
         if (trough != null) {
+            //TODO this is essentially bypassing the feedcheck interval
             trough.feedCheck(this.animal.level());
             if (trough.isAtMaxCapacity()) {
                 cir.setReturnValue(false);
