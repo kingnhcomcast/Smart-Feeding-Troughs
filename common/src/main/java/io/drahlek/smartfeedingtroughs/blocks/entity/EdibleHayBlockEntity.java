@@ -46,6 +46,10 @@ public class EdibleHayBlockEntity extends FeedingBlockEntity {
         return charges > 0;
     }
 
+    public int getCharges() {
+        return this.charges;
+    }
+
     @Override
     public boolean isAtMaxCapacity() {
         return false;

@@ -4,7 +4,10 @@ import io.drahlek.dirigo.annotation.Block;
 import io.drahlek.dirigo.registrars.BlockEntityRegistrar;
 import io.drahlek.smartfeedingtroughs.blocks.entity.EdibleHayBlockEntity;
 import io.drahlek.smartfeedingtroughs.blocks.entity.FeedingBlockEntity;
+import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HayBlock;
@@ -14,6 +17,8 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.material.MapColor;
 import org.jspecify.annotations.Nullable;
 
@@ -35,6 +40,16 @@ public class EdibleHayBlock extends HayBlock implements EntityBlock {
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new EdibleHayBlockEntity(blockPos, blockState);
+    }
+
+    @Override
+    protected List<ItemStack> getDrops(BlockState blockState, LootParams.Builder params) {
+        if (!(params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof EdibleHayBlockEntity edibleHay)) {
+            return List.of();
+        }
+
+        int charges = edibleHay.getCharges();
+        return charges <= 0 ? List.of() : List.of(new ItemStack(Items.WHEAT, charges));
     }
 
     @Override
