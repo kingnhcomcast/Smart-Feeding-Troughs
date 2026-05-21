@@ -2,11 +2,11 @@
 bugs:
 * in some instances max capacity could be exceeded
 
-- edible hay bale
-    - 8 feeds per block
-    - change blockstate view to reflect how many feeds left
+* edible hay bale
+    * 8 feeds per block
+    * change blockstate view to reflect how many feeds left
     * shear vanilla block to make edible block
-    - when broken, drops #wheat equal to number of feeds left
+    * when broken, drops #wheat equal to number of feeds left
     * add sound when changing
     * fix item texture (in creative tab/inventory)
     * creative tab tooltip

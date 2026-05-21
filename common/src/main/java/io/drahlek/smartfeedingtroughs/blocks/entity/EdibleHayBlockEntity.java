@@ -12,15 +12,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import org.jspecify.annotations.NonNull;
 
 @BlockEntity(id = EdibleHayBlock.NAME)
 public class EdibleHayBlockEntity extends FeedingBlockEntity {
-    private static final int CHARGES_DEFAULT = 8;
-    private int charges = CHARGES_DEFAULT;
-
     public EdibleHayBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(BlockEntityRegistrar.get(EdibleHayBlock.NAME, EdibleHayBlockEntity.class), worldPosition, blockState);
     }
@@ -43,11 +37,11 @@ public class EdibleHayBlockEntity extends FeedingBlockEntity {
 
     @Override
     public boolean isFoodAvailable() {
-        return charges > 0;
+        return getCharges() > 0;
     }
 
     public int getCharges() {
-        return this.charges;
+        return getBlockState().getValue(EdibleHayBlock.CHARGES);
     }
 
     @Override
@@ -57,27 +51,15 @@ public class EdibleHayBlockEntity extends FeedingBlockEntity {
 
     @Override
     protected ItemStack consumeFoodFor(Animal animal) {
-        if (this.charges <= 1) {
+        int charges = getCharges();
+        if (charges <= 1) {
             level.setBlock(this.getBlockPos(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         } else {
-            this.charges--;
+            level.setBlock(this.getBlockPos(), getBlockState().setValue(EdibleHayBlock.CHARGES, charges - 1), Block.UPDATE_ALL);
             setChanged();
         }
 
         return new ItemStack(Items.WHEAT);
-    }
-
-    @Override
-    protected void loadAdditional(@NonNull ValueInput input) {
-        super.loadAdditional(input);
-
-        this.charges = input.getInt("charges").orElse(CHARGES_DEFAULT);
-    }
-
-    @Override
-    protected void saveAdditional(@NonNull ValueOutput output) {
-        super.saveAdditional(output);
-        output.putInt("charges", this.charges);
     }
 
     @Override
