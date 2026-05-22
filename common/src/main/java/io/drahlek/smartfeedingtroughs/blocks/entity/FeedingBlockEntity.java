@@ -6,6 +6,7 @@ import io.drahlek.smartfeedingtroughs.animal.ISmartTroughClaimedAnimal;
 import io.drahlek.smartfeedingtroughs.config.SmartFeedingTroughConfig;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -148,8 +150,19 @@ public abstract class FeedingBlockEntity extends BlockEntity {
     }
 
     protected boolean canPathToTrough(Animal animal) {
-        Path path = animal.getNavigation().createPath(this.worldPosition, 0);
-        return path != null && path.canReach();
+        return getReachableFeedingPos(animal) != null;
+    }
+
+    public @Nullable BlockPos getReachableFeedingPos(Animal animal) {
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos feedingPos = this.worldPosition.relative(direction);
+            Path path = animal.getNavigation().createPath(feedingPos, 0);
+            if (path != null && path.canReach()) {
+                return feedingPos;
+            }
+        }
+
+        return null;
     }
 
     private void verifyClaimedAnimals() {
