@@ -109,18 +109,25 @@ public class FeedFromTroughGoal extends Goal {
 
         repathCooldown = REPATH_INTERVAL;
 
+        FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
+        if (trough == null) {
+            troughAnimal.smartfeedingtroughs$releaseClaim();
+            return;
+        }
+
+        BlockPos feedingPos = trough.getReachableFeedingPos(animal);
+        if (feedingPos == null) {
+            trough.releaseAnimal(animal);
+            return;
+        }
+
         if (!animal.getNavigation().moveTo(
-                troughPos.getX() + 0.5D,
-                troughPos.getY(),
-                troughPos.getZ() + 0.5D,
+                feedingPos.getX() + 0.5D,
+                feedingPos.getY(),
+                feedingPos.getZ() + 0.5D,
                 SPEED
         )) {
-            FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
-            if (trough != null) {
-                trough.releaseAnimal(animal);
-            } else {
-                troughAnimal.smartfeedingtroughs$releaseClaim();
-            }
+            trough.releaseAnimal(animal);
         }
     }
 
