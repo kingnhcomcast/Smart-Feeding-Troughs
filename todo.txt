@@ -15,7 +15,7 @@ bugs:
     - stop them from standing on top of trough to feed, just walk 1 block away
     - dont feed immedialty when get to trough, wait a second, stand there, look at trough, then eat
     - animate feeding - lower head?
-    - feeding particles
+    - feeding particles (flakes of hay flying around)
     - default eating sound
 
 - show food in trough, indicate fullness level
