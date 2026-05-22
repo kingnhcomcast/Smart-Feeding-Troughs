@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "smartfeedingtroughs:block/edible_hay_block"
+  }
+}

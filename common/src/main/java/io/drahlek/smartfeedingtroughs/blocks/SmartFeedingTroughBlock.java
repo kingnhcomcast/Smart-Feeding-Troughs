@@ -6,7 +6,7 @@ import io.drahlek.dirigo.annotation.Recipe;
 import io.drahlek.dirigo.datagen.RecipeContext;
 import io.drahlek.smartfeedingtroughs.Constants;
 import io.drahlek.smartfeedingtroughs.blocks.entity.SmartFeedingTroughBlockEntity;
-import io.drahlek.smartfeedingtroughs.blocks.entity.SmartFeedingTroughBlockEntityTypes;
+import io.drahlek.dirigo.registrars.BlockEntityRegistrar;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -117,7 +117,11 @@ public class SmartFeedingTroughBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> blockEntityType) {
         return level.isClientSide()
                 ? null
-                : createTickerHelper(blockEntityType, SmartFeedingTroughBlockEntityTypes.smartFeedingTrough(), SmartFeedingTroughBlockEntity::tick);
+                : createTickerHelper(
+                        blockEntityType,
+                        BlockEntityRegistrar.get(SmartFeedingTroughBlock.NAME, SmartFeedingTroughBlockEntity.class),
+                        SmartFeedingTroughBlockEntity::tick
+                );
     }
 
     @Override

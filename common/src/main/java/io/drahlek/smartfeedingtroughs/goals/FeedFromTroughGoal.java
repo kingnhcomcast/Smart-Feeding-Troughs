@@ -2,7 +2,7 @@ package io.drahlek.smartfeedingtroughs.goals;
 
 import io.drahlek.smartfeedingtroughs.Constants;
 import io.drahlek.smartfeedingtroughs.animal.ISmartTroughClaimedAnimal;
-import io.drahlek.smartfeedingtroughs.blocks.entity.SmartFeedingTroughBlockEntity;
+import io.drahlek.smartfeedingtroughs.blocks.entity.FeedingBlockEntity;
 import io.drahlek.smartfeedingtroughs.config.SmartFeedingTroughConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -38,7 +38,7 @@ public class FeedFromTroughGoal extends Goal {
     }
 
     private boolean isNearbyMate() {
-        SmartFeedingTroughBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
+        FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
         if (trough != null) {
             return trough.isMateAvailable(animal);
         }
@@ -73,17 +73,16 @@ public class FeedFromTroughGoal extends Goal {
                 troughPos.getZ() + 0.5D
         );
 
-        if (isCloseEnoughToEat()) {
-            SmartFeedingTroughBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
+        if (isCloseEnoughToEat() && isNearbyMate()) {
+            FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
             if (trough != null) {
                 trough.feedAnimal(animal);
             }
         } else {
             //add some randomness if they feed, to avoid all of them coming at trough at the exact same time
             float feedChance = SmartFeedingTroughConfig.data().getFeedChance();
-            Constants.LOG.debug("Feed chance: {}", feedChance);
             if (animal.getRandom().nextFloat() >= feedChance) {
-                Constants.LOG.debug("Feed chance failed for {}:{}", animal.getName().getString(), animal.getId());
+                Constants.LOG.debug("Feed chance failed for {}", Constants.describeEntity(animal));
                 this.feedChanceCooldown = FEED_CHANCE_COOLDOWN;
                 return;
             }
@@ -110,18 +109,25 @@ public class FeedFromTroughGoal extends Goal {
 
         repathCooldown = REPATH_INTERVAL;
 
+        FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
+        if (trough == null) {
+            troughAnimal.smartfeedingtroughs$releaseClaim();
+            return;
+        }
+
+        BlockPos feedingPos = trough.getReachableFeedingPos(animal);
+        if (feedingPos == null) {
+            trough.releaseAnimal(animal);
+            return;
+        }
+
         if (!animal.getNavigation().moveTo(
-                troughPos.getX() + 0.5D,
-                troughPos.getY(),
-                troughPos.getZ() + 0.5D,
+                feedingPos.getX() + 0.5D,
+                feedingPos.getY(),
+                feedingPos.getZ() + 0.5D,
                 SPEED
         )) {
-            SmartFeedingTroughBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
-            if (trough != null) {
-                trough.releaseAnimal(animal);
-            } else {
-                troughAnimal.smartfeedingtroughs$releaseClaim();
-            }
+            trough.releaseAnimal(animal);
         }
     }
 
@@ -136,7 +142,7 @@ public class FeedFromTroughGoal extends Goal {
             return false;
         }
 
-        if (!(animal.level().getBlockEntity(troughPos) instanceof SmartFeedingTroughBlockEntity trough)) {
+        if (!(animal.level().getBlockEntity(troughPos) instanceof FeedingBlockEntity trough)) {
             troughAnimal.smartfeedingtroughs$releaseClaim();
             return false;
         }

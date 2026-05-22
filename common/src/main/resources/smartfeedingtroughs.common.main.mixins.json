@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "AnimalMixin",
-    "MineCraftServerMixin"
+    "BreedGoalMixin",
+    "MineCraftServerMixin",
+    "HayBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,15 +1,16 @@
 package io.drahlek.smartfeedingtroughs.mixin;
 
 import io.drahlek.smartfeedingtroughs.animal.ISmartTroughClaimedAnimal;
-import io.drahlek.smartfeedingtroughs.blocks.entity.SmartFeedingTroughBlockEntity;
+import io.drahlek.smartfeedingtroughs.blocks.entity.FeedingBlockEntity;
 import io.drahlek.smartfeedingtroughs.goals.FeedFromTroughGoal;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.goal.TemptGoal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.UnknownNullability;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -45,7 +46,7 @@ public abstract class AnimalMixin extends AgeableMob implements ISmartTroughClai
     }
 
     @Override
-    public void smartfeedingtroughs$claim(SmartFeedingTroughBlockEntity trough) {
+    public void smartfeedingtroughs$claim(@UnknownNullability FeedingBlockEntity trough) {
         this.smartfeedingtroughs$claimedTroughPos = trough.getBlockPos();
     }
 
@@ -60,12 +61,12 @@ public abstract class AnimalMixin extends AgeableMob implements ISmartTroughClai
     }
 
     @Override
-    public SmartFeedingTroughBlockEntity smartfeedingtroughs$getClaimedTrough(Level level) {
+    public FeedingBlockEntity smartfeedingtroughs$getClaimedTrough(Level level) {
         if (this.smartfeedingtroughs$claimedTroughPos == null) {
             return null;
         }
 
-        if (level.getBlockEntity(this.smartfeedingtroughs$claimedTroughPos) instanceof SmartFeedingTroughBlockEntity trough) {
+        if (level.getBlockEntity(this.smartfeedingtroughs$claimedTroughPos) instanceof FeedingBlockEntity trough) {
             return trough;
         }
 

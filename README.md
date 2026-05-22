@@ -1,12 +1,17 @@
 # Smart Feeding Troughs
 
-**Smart Feeding Troughs** automatically feeds and breeds nearby animals in a natural and vanilla-friendly way.
+**Smart Feeding Troughs** automatically feeds and breeds nearby animals in a natural and vanilla-friendly way. Also adds an edible Hay Bale Block which allows wheat eating animals to feed directly from the bale.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kingnhcomcast/Smart-Feeding-Troughs/refs/heads/26.1/media/FeedingTroughAndHay.gif" width="700"/>
+</p>
 
 ## Features
 * Supports both Fabric and NeoForge loaders
-* Animals feed only if a nearby eligible mate is also ready to breed, avoiding wasted food.
+* Shear a Hay Bale and animals that eat wheat can feed directly from the block 8 times.
 * Enforces a population cap and stops feeding once the cap is reached.
-* Works with any modded animal that extends the vanilla `Animal` class.
+* Animals feed only if a nearby eligible mate is also ready to breed, avoiding wasted food.
+* Works with any modded animal that extends the vanilla `Animal` class. Tested with Alex's Mobs.
 * Designed for maximum efficiency by minimizing expensive scanning.
 * Supports automated input through top and sides via vanilla hoppers.
 * Fully configurable, with command-line and UI options via Cloth Config and Mod Menu.
@@ -38,6 +43,12 @@ This mod is being actively developed and the following are the potential planned
 * `troughClaimCheckInterval`: Number of ticks the trough waits before searching for more animals to claim. (Default: `600`)
 * `feedChance`: Probability that an animal will feed when ready. This adds natural variation and can be set to `1.00` for a 100% chance. (Default: `0.25`)
 
+## Changelog
+### 1.1.0
+* Added Edible Hay Bale
+* Fixed bug where population cap could sometimes be significantly exceeded
+
+---
 License: MIT
 
 Source: https://github.com/kingnhcomcast/Smart-Breeding-Troughs

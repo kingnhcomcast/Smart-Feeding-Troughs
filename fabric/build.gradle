@@ -102,6 +102,8 @@ loom {
             runDir('runs/server')
         }
     }
+
+    log4jConfigs.from "log4j-dev.xml"
 }
 
 def dirigoFabricJar = rootProject.file("../Dirigo/fabric/build/libs/dirigo-fabric-${minecraft_version}-${dirigo_min_version}.jar")
