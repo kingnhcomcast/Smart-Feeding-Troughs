@@ -14,6 +14,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -122,6 +123,16 @@ public class SmartFeedingTroughBlock extends BaseEntityBlock {
                         BlockEntityRegistrar.get(SmartFeedingTroughBlock.NAME, SmartFeedingTroughBlockEntity.class),
                         SmartFeedingTroughBlockEntity::tick
                 );
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof SmartFeedingTroughBlockEntity smartTrough) {
+            Containers.dropContents(level, pos, smartTrough);
+            level.updateNeighbourForOutputSignal(pos, this);
+        }
+
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
