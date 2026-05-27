@@ -23,7 +23,12 @@ import java.util.Objects;
 
 @Getter
 public abstract class FeedingBlockEntity extends BlockEntity {
+    private static final long BIRTH_RESERVATION_TIMEOUT_TICKS = 600L;
+
     protected List<Animal> animals = Lists.newArrayList();
+    private int reservedParents;
+    private int completedReservedParents;
+    private long lastBirthReservationGameTime;
 
     public FeedingBlockEntity(BlockEntityType<? extends FeedingBlockEntity> entityType, BlockPos blockPos, BlockState blockState) {
         super(entityType, blockPos, blockState);
@@ -47,6 +52,7 @@ public abstract class FeedingBlockEntity extends BlockEntity {
 
         //verify claimed animals
         verifyClaimedAnimals();
+        resolveBirthReservations(level);
 
         //if trough is empty or we are at max cap, release claim on all animals
         if(!isFoodAvailable()) {
@@ -67,19 +73,25 @@ public abstract class FeedingBlockEntity extends BlockEntity {
     public abstract boolean isFoodAvailable();
 
     public boolean isAtMaxCapacity() {
-        return animals.size() >= SmartFeedingTroughConfig.data().getMaxClaimedAnimals();
+        return hasCapacityLimit()
+                && animals.size() + (reservedParents / 2.0D) >= SmartFeedingTroughConfig.data().getMaxClaimedAnimals();
     }
 
     public void feedAnimal(Animal animal) {
+        Animal mate = getAvailableMate(animal);
         if (!animals.contains(animal)
                 || !(animal instanceof ISmartTroughClaimedAnimal claimedAnimal)
                 || animal.getAge() != 0
                 || !animal.canFallInLove()
-                || !isMateAvailable(animal)) {
+                || mate == null) {
             return;
         }
 
         if (animal.distanceToSqr(Vec3.atCenterOf(this.worldPosition)) > 4.0D) {
+            return;
+        }
+
+        if (!tryReserveBirth(animal)) {
             return;
         }
 
@@ -94,16 +106,21 @@ public abstract class FeedingBlockEntity extends BlockEntity {
     protected abstract ItemStack consumeFoodFor(Animal animal);
 
     public boolean isMateAvailable(Animal animal) {
+        return getAvailableMate(animal) != null;
+    }
+
+    private @Nullable Animal getAvailableMate(Animal animal) {
         for(Animal mate : animals) {
             if (mate != animal
                     && mate.isAlive()
                     && mate.getClass() == animal.getClass()
                     && mate.getAge() == 0
-                    && (mate.isInLove() || (mate.canFallInLove() && hasFeedingFoodFor(mate)))) {
-                return true;
+                    && (mate.isInLove() || (mate.canFallInLove() && hasFeedingFoodFor(mate)))
+                    && hasBirthSlot()) {
+                return mate;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -114,7 +131,6 @@ public abstract class FeedingBlockEntity extends BlockEntity {
      *         */
     private void claimAnimals(Level level) {
         int range = SmartFeedingTroughConfig.data().getRange();
-        int maxAnimals = SmartFeedingTroughConfig.data().getMaxClaimedAnimals();
         AABB area = new AABB(this.worldPosition).inflate(range);
 
         //get all animals that are in range
@@ -123,7 +139,7 @@ public abstract class FeedingBlockEntity extends BlockEntity {
                 Constants.LOG.debug("Claimed animal {} for {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
                 animals.add(animal);
                 claimedAnimal.smartfeedingtroughs$claim(this);
-                if (animals.size() >= maxAnimals) {
+                if (isAtMaxCapacity()) {
                     break;
                 }
             }
@@ -207,5 +223,48 @@ public abstract class FeedingBlockEntity extends BlockEntity {
             }
         }
         animals.clear();
+        reservedParents = 0;
+        completedReservedParents = 0;
+    }
+
+    public boolean hasBirthSlot() {
+        return !hasCapacityLimit() || !isAtMaxCapacity();
+    }
+
+    public void completeBirthReservation() {
+        if (!hasCapacityLimit()) {
+            return;
+        }
+
+        completedReservedParents = Math.min(reservedParents, completedReservedParents + 2);
+    }
+
+    protected boolean hasCapacityLimit() {
+        return true;
+    }
+
+    private boolean tryReserveBirth(Animal animal) {
+        if (!hasCapacityLimit()) {
+            return true;
+        }
+
+        if (isAtMaxCapacity()) {
+            Constants.LOG.debug("Skipping feed for {} from {}, no birth capacity remains", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            return false;
+        }
+
+        reservedParents++;
+        lastBirthReservationGameTime = animal.level().getGameTime();
+        return true;
+    }
+
+    private void resolveBirthReservations(Level level) {
+        long gameTime = level.getGameTime();
+        reservedParents = Math.max(0, reservedParents - completedReservedParents);
+        completedReservedParents = 0;
+
+        if (reservedParents > 0 && gameTime - lastBirthReservationGameTime > BIRTH_RESERVATION_TIMEOUT_TICKS) {
+            reservedParents = 0;
+        }
     }
 }

@@ -50,6 +50,11 @@ public class EdibleHayBlockEntity extends FeedingBlockEntity {
     }
 
     @Override
+    protected boolean hasCapacityLimit() {
+        return false;
+    }
+
+    @Override
     protected ItemStack consumeFoodFor(Animal animal) {
         int charges = getCharges();
         if (charges <= 1) {
