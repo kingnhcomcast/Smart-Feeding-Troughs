@@ -29,6 +29,7 @@ public abstract class FeedingBlockEntity extends BlockEntity {
     private int reservedParents;
     private int completedReservedParents;
     private long lastBirthReservationGameTime;
+    private int feedCheckOffset = -1;
 
     public FeedingBlockEntity(BlockEntityType<? extends FeedingBlockEntity> entityType, BlockPos blockPos, BlockState blockState) {
         super(entityType, blockPos, blockState);
@@ -40,7 +41,7 @@ public abstract class FeedingBlockEntity extends BlockEntity {
         }
 
         int feedcheckInterval = Math.max(1, SmartFeedingTroughConfig.data().getTroughClaimCheckInterval());
-        if (level.getGameTime() % feedcheckInterval != 0) {
+        if ((level.getGameTime() % feedcheckInterval) != trough.getFeedCheckOffset(level, feedcheckInterval)) {
             return;
         }
 
@@ -266,5 +267,15 @@ public abstract class FeedingBlockEntity extends BlockEntity {
         if (reservedParents > 0 && gameTime - lastBirthReservationGameTime > BIRTH_RESERVATION_TIMEOUT_TICKS) {
             reservedParents = 0;
         }
+    }
+
+    //this staggers feedchecks so all troughs dont fire at the same tick
+    private int getFeedCheckOffset(Level level, int feedcheckInterval) {
+        //cover case when interval has been decreased in config
+        if (feedCheckOffset < 0 || feedCheckOffset >= feedcheckInterval) {
+            feedCheckOffset = level.getRandom().nextInt(feedcheckInterval);
+        }
+
+        return feedCheckOffset;
     }
 }
