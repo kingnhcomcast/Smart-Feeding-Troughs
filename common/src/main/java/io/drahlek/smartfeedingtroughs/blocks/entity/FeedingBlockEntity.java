@@ -128,30 +128,33 @@ public abstract class FeedingBlockEntity extends BlockEntity {
      *         in range
      *         can path to trough
      *         not yet claimed by another trough
-     *         adult
-     *         */
+     */
     private void claimAnimals(Level level) {
         int range = SmartFeedingTroughConfig.data().getRange();
         AABB area = new AABB(this.worldPosition).inflate(range);
 
         //get all animals that are in range
-        for (Animal animal : level.getEntitiesOfClass(Animal.class, area, this::canClaim)) {
-            if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal && !claimedAnimal.smartfeedingtroughs$isClaimed()) {
-                Constants.LOG.debug("Claimed animal {} for {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
-                animals.add(animal);
-                claimedAnimal.smartfeedingtroughs$claim(this);
-                if (isAtMaxCapacity()) {
-                    break;
-                }
+        for (Animal animal : level.getEntitiesOfClass(Animal.class, area)) {
+            if(isAtMaxCapacity()) {
+                break;
             }
+
+            if(!canClaim(animal)) {
+                continue;
+            }
+
+            ISmartTroughClaimedAnimal claimedAnimal = (ISmartTroughClaimedAnimal) animal;
+            Constants.LOG.debug("Claimed animal {} for {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            animals.add(animal);
+            claimedAnimal.smartfeedingtroughs$claim(this);
         }
     }
 
 
     protected boolean canClaim(Animal animal) {
         if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal) {
-            return hasFeedingFoodFor(animal) &&
-                    !claimedAnimal.smartfeedingtroughs$isClaimed() &&
+            return !claimedAnimal.smartfeedingtroughs$isClaimed() &&
+                    hasFeedingFoodFor(animal) &&
                     canPathToTrough(animal);
         }
         return false;
