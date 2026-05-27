@@ -19,8 +19,6 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
-
 @Getter
 public abstract class FeedingBlockEntity extends BlockEntity {
     private static final long BIRTH_RESERVATION_TIMEOUT_TICKS = 600L;
@@ -49,7 +47,9 @@ public abstract class FeedingBlockEntity extends BlockEntity {
     }
 
     public void feedCheck(Level level) {
-        Constants.LOG.debug("Feed check started for {}", Constants.describeBlockEntity(this));
+        if (Constants.LOG.isDebugEnabled()) {
+            Constants.LOG.debug("Feed check started for {}", Constants.describeBlockEntity(this));
+        }
 
         //verify claimed animals
         verifyClaimedAnimals();
@@ -57,13 +57,17 @@ public abstract class FeedingBlockEntity extends BlockEntity {
 
         //if trough is empty or we are at max cap, release claim on all animals
         if(!isFoodAvailable()) {
-            Constants.LOG.debug("Trough is empty for {}", Constants.describeBlockEntity(this));
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Trough is empty for {}", Constants.describeBlockEntity(this));
+            }
             return;
         }
 
         //check max capacity and exit to avoid needless computation
         if (isAtMaxCapacity()) {
-            Constants.LOG.debug("Trough is at max capacity for {}", Constants.describeBlockEntity(this));
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Trough is at max capacity for {}", Constants.describeBlockEntity(this));
+            }
             return;
         }
 
@@ -98,19 +102,25 @@ public abstract class FeedingBlockEntity extends BlockEntity {
 
         ItemStack consumedFood = consumeFoodFor(animal);
         if (!consumedFood.isEmpty()) {
-            Constants.LOG.debug("Feeding {} from {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Feeding {} from {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            }
             animal.setInLove(null);
             claimedAnimal.smartfeedingtroughs$playEatingSound();
+            onAnimalFed(animal);
         }
     }
 
     protected abstract ItemStack consumeFoodFor(Animal animal);
 
+    protected void onAnimalFed(Animal animal) {
+    }
+
     public boolean isMateAvailable(Animal animal) {
         return getAvailableMate(animal) != null;
     }
 
-    private @Nullable Animal getAvailableMate(Animal animal) {
+    protected @Nullable Animal getAvailableMate(Animal animal) {
         for(Animal mate : animals) {
             if (mate != animal
                     && mate.isAlive()
@@ -139,38 +149,43 @@ public abstract class FeedingBlockEntity extends BlockEntity {
                 break;
             }
 
-            if(!canClaim(animal)) {
+            BlockPos feedingPos = getClaimFeedingPos(animal);
+            if (feedingPos == null) {
                 continue;
             }
 
             ISmartTroughClaimedAnimal claimedAnimal = (ISmartTroughClaimedAnimal) animal;
-            Constants.LOG.debug("Claimed animal {} for {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Claimed animal {} for {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            }
             animals.add(animal);
-            claimedAnimal.smartfeedingtroughs$claim(this);
+            claimedAnimal.smartfeedingtroughs$claim(this, feedingPos);
         }
     }
 
 
-    protected boolean canClaim(Animal animal) {
+    protected @Nullable BlockPos getClaimFeedingPos(Animal animal) {
         if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal) {
-            return !claimedAnimal.smartfeedingtroughs$isClaimed() &&
-                    hasFeedingFoodFor(animal) &&
-                    canPathToTrough(animal);
+            if (!animal.isAlive()
+                    || claimedAnimal.smartfeedingtroughs$isClaimed()
+                    || !hasFeedingFoodFor(animal)) {
+                return null;
+            }
+
+            return getReachableFeedingPos(animal);
         }
-        return false;
+        return null;
     }
 
     public void releaseAnimal(Animal animal) {
-        if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal
-                && this.worldPosition.equals(Objects.requireNonNull(claimedAnimal.smartfeedingtroughs$getClaimedTroughPos()))) {
-            claimedAnimal.smartfeedingtroughs$releaseClaim();
+        if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal) {
+            BlockPos claimedTroughPos = claimedAnimal.smartfeedingtroughs$getClaimedTroughPos();
+            if (this.worldPosition.equals(claimedTroughPos)) {
+                claimedAnimal.smartfeedingtroughs$releaseClaim();
+            }
         }
 
         animals.remove(animal);
-    }
-
-    protected boolean canPathToTrough(Animal animal) {
-        return getReachableFeedingPos(animal) != null;
     }
 
     public @Nullable BlockPos getReachableFeedingPos(Animal animal) {
@@ -208,7 +223,9 @@ public abstract class FeedingBlockEntity extends BlockEntity {
 
             return remove;
         });
-        Constants.LOG.debug("Claimed animals size {} for {}", animals.size(), Constants.describeBlockEntity(this));
+        if (Constants.LOG.isDebugEnabled()) {
+            Constants.LOG.debug("Claimed animals size {} for {}", animals.size(), Constants.describeBlockEntity(this));
+        }
     }
 
     public abstract boolean hasFeedingFoodFor(Animal animal);
@@ -253,7 +270,9 @@ public abstract class FeedingBlockEntity extends BlockEntity {
         }
 
         if (isAtMaxCapacity()) {
-            Constants.LOG.debug("Skipping feed for {} from {}, no birth capacity remains", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Skipping feed for {} from {}, no birth capacity remains", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            }
             return false;
         }
 

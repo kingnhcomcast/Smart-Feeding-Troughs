@@ -82,7 +82,9 @@ public class FeedFromTroughGoal extends Goal {
             //add some randomness if they feed, to avoid all of them coming at trough at the exact same time
             float feedChance = SmartFeedingTroughConfig.data().getFeedChance();
             if (animal.getRandom().nextFloat() >= feedChance) {
-                Constants.LOG.debug("Feed chance failed for {}", Constants.describeEntity(animal));
+                if (Constants.LOG.isDebugEnabled()) {
+                    Constants.LOG.debug("Feed chance failed for {}", Constants.describeEntity(animal));
+                }
                 this.feedChanceCooldown = FEED_CHANCE_COOLDOWN;
                 return;
             }
@@ -115,7 +117,7 @@ public class FeedFromTroughGoal extends Goal {
             return;
         }
 
-        BlockPos feedingPos = trough.getReachableFeedingPos(animal);
+        BlockPos feedingPos = troughAnimal.smartfeedingtroughs$getClaimedFeedingPos();
         if (feedingPos == null) {
             trough.releaseAnimal(animal);
             return;
@@ -152,6 +154,6 @@ public class FeedFromTroughGoal extends Goal {
             return false;
         }
 
-        return !trough.isAtMaxCapacity();
+        return true;
     }
 }
