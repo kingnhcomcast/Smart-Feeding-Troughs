@@ -15,11 +15,13 @@ public class FeedFromTroughGoal extends Goal {
     private static final double SPEED = 1.0D;
     private static final int REPATH_INTERVAL = 20;
     private static final int FEED_CHANCE_COOLDOWN = 40;
+    private static final int EAT_DELAY = 30;
 
     private final Animal animal;
     private final ISmartTroughClaimedAnimal troughAnimal;
     private int repathCooldown;
-    private int feedChanceCooldown;
+    private int feedChanceCooldown = 0;
+    private int timeAtTrough;
 
     public FeedFromTroughGoal(Animal animal) {
         this.animal = animal;
@@ -29,39 +31,37 @@ public class FeedFromTroughGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return troughAnimal != null
-                && troughAnimal.smartfeedingtroughs$getClaimedTroughPos() != null
-                && animal.getAge() == 0
-                && animal.canFallInLove()
-                && claimedTroughStillValid()
-                && isNearbyMate();
-    }
-
-    private boolean isNearbyMate() {
-        FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
-        if (trough != null) {
-            return trough.isMateAvailable(animal);
+        if (feedChanceCooldown-- > 0) {
+            return false;
         }
-        return false;
+
+        //add some randomness if they feed, to avoid all of them coming at trough at the exact same time
+        float feedChance = SmartFeedingTroughConfig.data().getFeedChance();
+        if (animal.getRandom().nextFloat() >= feedChance) {
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Feed chance failed for {}", Constants.describeEntity(animal));
+            }
+            this.feedChanceCooldown = FEED_CHANCE_COOLDOWN;
+            return false;
+        }
+
+        return isReadyToFeed();
     }
 
     @Override
     public boolean canContinueToUse() {
-        return canUse();
+        return isReadyToFeed();
     }
 
     @Override
     public void start() {
+        this.timeAtTrough = 0;
         this.repathCooldown = 0;
         this.feedChanceCooldown = 0;
     }
 
     @Override
     public void tick() {
-        if(feedChanceCooldown-- > 0) {
-            return;
-        }
-
         BlockPos troughPos = troughAnimal.smartfeedingtroughs$getClaimedTroughPos();
         if (troughPos == null) {
             return;
@@ -69,26 +69,22 @@ public class FeedFromTroughGoal extends Goal {
 
         this.animal.getLookControl().setLookAt(
                 troughPos.getX() + 0.5D,
-                troughPos.getY() + 0.5D,
+                troughPos.getY(),
                 troughPos.getZ() + 0.5D
         );
 
-        if (isCloseEnoughToEat() && isNearbyMate()) {
-            FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
-            if (trough != null) {
-                trough.feedAnimal(animal);
+        if (isCloseEnoughToEat()) {
+            animal.getNavigation().stop();
+            if (++timeAtTrough >= EAT_DELAY) {
+                if (isNearbyMate()) {
+                    FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
+                    if (trough != null) {
+                        trough.feedAnimal(animal);
+                    }
+                }
             }
         } else {
-            //add some randomness if they feed, to avoid all of them coming at trough at the exact same time
-            float feedChance = SmartFeedingTroughConfig.data().getFeedChance();
-            if (animal.getRandom().nextFloat() >= feedChance) {
-                if (Constants.LOG.isDebugEnabled()) {
-                    Constants.LOG.debug("Feed chance failed for {}", Constants.describeEntity(animal));
-                }
-                this.feedChanceCooldown = FEED_CHANCE_COOLDOWN;
-                return;
-            }
-
+            timeAtTrough = 0;
             moveToTrough();
         }
     }
@@ -96,6 +92,9 @@ public class FeedFromTroughGoal extends Goal {
     @Override
     public void stop() {
         animal.getNavigation().stop();
+        this.timeAtTrough = 0;
+        this.repathCooldown = 0;
+        this.feedChanceCooldown = 0;
     }
 
     private void moveToTrough() {
@@ -155,5 +154,23 @@ public class FeedFromTroughGoal extends Goal {
         }
 
         return true;
+    }
+
+
+    private boolean isReadyToFeed() {
+        return troughAnimal != null
+                && troughAnimal.smartfeedingtroughs$getClaimedTroughPos() != null
+                && animal.getAge() == 0
+                && animal.canFallInLove()
+                && claimedTroughStillValid()
+                && isNearbyMate();
+    }
+
+    private boolean isNearbyMate() {
+        FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
+        if (trough != null) {
+            return trough.isMateAvailable(animal);
+        }
+        return false;
     }
 }
