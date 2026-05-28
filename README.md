@@ -7,6 +7,7 @@
 </p>
 
 ## Features
+* Designed and Optimized for maximum performance in multi player servers
 * Supports both Fabric and NeoForge loaders
 * Shear a Hay Bale and animals that eat wheat can feed directly from the block 8 times.
 * Enforces a population cap and stops feeding once the cap is reached.
@@ -44,6 +45,11 @@ This mod is being actively developed and the following are the potential planned
 * `feedChance`: Probability that an animal will feed when ready. This adds natural variation and can be set to `1.00` for a 100% chance. (Default: `0.25`)
 
 ## Changelog
+### 1.2.0
+* Performance optimizations geared towards multi player servers
+* Improved visuals and natural behavior while animals feed
+* Trough visuals change to reflect current inventory levels
+
 ### 1.1.0
 * Added Edible Hay Bale
 * Fixed bug where population cap could sometimes be significantly exceeded 
