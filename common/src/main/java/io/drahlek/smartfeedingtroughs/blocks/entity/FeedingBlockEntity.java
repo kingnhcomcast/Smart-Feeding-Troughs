@@ -19,11 +19,15 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
-
 @Getter
 public abstract class FeedingBlockEntity extends BlockEntity {
+    private static final long BIRTH_RESERVATION_TIMEOUT_TICKS = 600L;
+
     protected List<Animal> animals = Lists.newArrayList();
+    private int reservedParents;
+    private int completedReservedParents;
+    private long lastBirthReservationGameTime;
+    private int feedCheckOffset = -1;
 
     public FeedingBlockEntity(BlockEntityType<? extends FeedingBlockEntity> entityType, BlockPos blockPos, BlockState blockState) {
         super(entityType, blockPos, blockState);
@@ -35,7 +39,7 @@ public abstract class FeedingBlockEntity extends BlockEntity {
         }
 
         int feedcheckInterval = Math.max(1, SmartFeedingTroughConfig.data().getTroughClaimCheckInterval());
-        if (level.getGameTime() % feedcheckInterval != 0) {
+        if ((level.getGameTime() % feedcheckInterval) != trough.getFeedCheckOffset(level, feedcheckInterval)) {
             return;
         }
 
@@ -43,20 +47,27 @@ public abstract class FeedingBlockEntity extends BlockEntity {
     }
 
     public void feedCheck(Level level) {
-        Constants.LOG.debug("Feed check started for {}", Constants.describeBlockEntity(this));
+        if (Constants.LOG.isDebugEnabled()) {
+            Constants.LOG.debug("Feed check started for {}", Constants.describeBlockEntity(this));
+        }
 
         //verify claimed animals
         verifyClaimedAnimals();
+        resolveBirthReservations(level);
 
         //if trough is empty or we are at max cap, release claim on all animals
         if(!isFoodAvailable()) {
-            Constants.LOG.debug("Trough is empty for {}", Constants.describeBlockEntity(this));
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Trough is empty for {}", Constants.describeBlockEntity(this));
+            }
             return;
         }
 
         //check max capacity and exit to avoid needless computation
         if (isAtMaxCapacity()) {
-            Constants.LOG.debug("Trough is at max capacity for {}", Constants.describeBlockEntity(this));
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Trough is at max capacity for {}", Constants.describeBlockEntity(this));
+            }
             return;
         }
 
@@ -67,15 +78,17 @@ public abstract class FeedingBlockEntity extends BlockEntity {
     public abstract boolean isFoodAvailable();
 
     public boolean isAtMaxCapacity() {
-        return animals.size() >= SmartFeedingTroughConfig.data().getMaxClaimedAnimals();
+        return hasCapacityLimit()
+                && animals.size() + (reservedParents / 2.0D) >= SmartFeedingTroughConfig.data().getMaxClaimedAnimals();
     }
 
     public void feedAnimal(Animal animal) {
+        Animal mate = getAvailableMate(animal);
         if (!animals.contains(animal)
                 || !(animal instanceof ISmartTroughClaimedAnimal claimedAnimal)
                 || animal.getAge() != 0
                 || !animal.canFallInLove()
-                || !isMateAvailable(animal)) {
+                || mate == null) {
             return;
         }
 
@@ -83,74 +96,98 @@ public abstract class FeedingBlockEntity extends BlockEntity {
             return;
         }
 
+        if (!tryReserveBirth(animal)) {
+            return;
+        }
+
         ItemStack consumedFood = consumeFoodFor(animal);
         if (!consumedFood.isEmpty()) {
-            Constants.LOG.debug("Feeding {} from {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Feeding {} from {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            }
             animal.setInLove(null);
             claimedAnimal.smartfeedingtroughs$playEatingSound();
+            onAnimalFed(animal);
         }
     }
 
     protected abstract ItemStack consumeFoodFor(Animal animal);
 
+    public abstract ItemStack getFeedingFoodFor(Animal animal);
+
+    protected void onAnimalFed(Animal animal) {
+    }
+
     public boolean isMateAvailable(Animal animal) {
+        return getAvailableMate(animal) != null;
+    }
+
+    protected @Nullable Animal getAvailableMate(Animal animal) {
         for(Animal mate : animals) {
             if (mate != animal
                     && mate.isAlive()
                     && mate.getClass() == animal.getClass()
                     && mate.getAge() == 0
-                    && (mate.isInLove() || (mate.canFallInLove() && hasFeedingFoodFor(mate)))) {
-                return true;
+                    && (mate.isInLove() || (mate.canFallInLove() && hasFeedingFoodFor(mate)))
+                    && hasBirthSlot()) {
+                return mate;
             }
         }
-        return false;
+        return null;
     }
 
     /**
      *         in range
      *         can path to trough
      *         not yet claimed by another trough
-     *         adult
-     *         */
+     */
     private void claimAnimals(Level level) {
         int range = SmartFeedingTroughConfig.data().getRange();
-        int maxAnimals = SmartFeedingTroughConfig.data().getMaxClaimedAnimals();
         AABB area = new AABB(this.worldPosition).inflate(range);
 
         //get all animals that are in range
-        for (Animal animal : level.getEntitiesOfClass(Animal.class, area, this::canClaim)) {
-            if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal && !claimedAnimal.smartfeedingtroughs$isClaimed()) {
-                Constants.LOG.debug("Claimed animal {} for {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
-                animals.add(animal);
-                claimedAnimal.smartfeedingtroughs$claim(this);
-                if (animals.size() >= maxAnimals) {
-                    break;
-                }
+        for (Animal animal : level.getEntitiesOfClass(Animal.class, area)) {
+            if(isAtMaxCapacity()) {
+                break;
             }
+
+            BlockPos feedingPos = getClaimFeedingPos(animal);
+            if (feedingPos == null) {
+                continue;
+            }
+
+            ISmartTroughClaimedAnimal claimedAnimal = (ISmartTroughClaimedAnimal) animal;
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Claimed animal {} for {}", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            }
+            animals.add(animal);
+            claimedAnimal.smartfeedingtroughs$claim(this, feedingPos);
         }
     }
 
 
-    protected boolean canClaim(Animal animal) {
+    protected @Nullable BlockPos getClaimFeedingPos(Animal animal) {
         if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal) {
-            return hasFeedingFoodFor(animal) &&
-                    !claimedAnimal.smartfeedingtroughs$isClaimed() &&
-                    canPathToTrough(animal);
+            if (!animal.isAlive()
+                    || claimedAnimal.smartfeedingtroughs$isClaimed()
+                    || !hasFeedingFoodFor(animal)) {
+                return null;
+            }
+
+            return getReachableFeedingPos(animal);
         }
-        return false;
+        return null;
     }
 
     public void releaseAnimal(Animal animal) {
-        if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal
-                && this.worldPosition.equals(Objects.requireNonNull(claimedAnimal.smartfeedingtroughs$getClaimedTroughPos()))) {
-            claimedAnimal.smartfeedingtroughs$releaseClaim();
+        if (animal instanceof ISmartTroughClaimedAnimal claimedAnimal) {
+            BlockPos claimedTroughPos = claimedAnimal.smartfeedingtroughs$getClaimedTroughPos();
+            if (this.worldPosition.equals(claimedTroughPos)) {
+                claimedAnimal.smartfeedingtroughs$releaseClaim();
+            }
         }
 
         animals.remove(animal);
-    }
-
-    protected boolean canPathToTrough(Animal animal) {
-        return getReachableFeedingPos(animal) != null;
     }
 
     public @Nullable BlockPos getReachableFeedingPos(Animal animal) {
@@ -188,7 +225,9 @@ public abstract class FeedingBlockEntity extends BlockEntity {
 
             return remove;
         });
-        Constants.LOG.debug("Claimed animals size {} for {}", animals.size(), Constants.describeBlockEntity(this));
+        if (Constants.LOG.isDebugEnabled()) {
+            Constants.LOG.debug("Claimed animals size {} for {}", animals.size(), Constants.describeBlockEntity(this));
+        }
     }
 
     public abstract boolean hasFeedingFoodFor(Animal animal);
@@ -207,5 +246,60 @@ public abstract class FeedingBlockEntity extends BlockEntity {
             }
         }
         animals.clear();
+        reservedParents = 0;
+        completedReservedParents = 0;
+    }
+
+    public boolean hasBirthSlot() {
+        return !hasCapacityLimit() || !isAtMaxCapacity();
+    }
+
+    public void completeBirthReservation() {
+        if (!hasCapacityLimit()) {
+            return;
+        }
+
+        completedReservedParents = Math.min(reservedParents, completedReservedParents + 2);
+    }
+
+    protected boolean hasCapacityLimit() {
+        return true;
+    }
+
+    private boolean tryReserveBirth(Animal animal) {
+        if (!hasCapacityLimit()) {
+            return true;
+        }
+
+        if (isAtMaxCapacity()) {
+            if (Constants.LOG.isDebugEnabled()) {
+                Constants.LOG.debug("Skipping feed for {} from {}, no birth capacity remains", Constants.describeEntity(animal), Constants.describeBlockEntity(this));
+            }
+            return false;
+        }
+
+        reservedParents++;
+        lastBirthReservationGameTime = animal.level().getGameTime();
+        return true;
+    }
+
+    private void resolveBirthReservations(Level level) {
+        long gameTime = level.getGameTime();
+        reservedParents = Math.max(0, reservedParents - completedReservedParents);
+        completedReservedParents = 0;
+
+        if (reservedParents > 0 && gameTime - lastBirthReservationGameTime > BIRTH_RESERVATION_TIMEOUT_TICKS) {
+            reservedParents = 0;
+        }
+    }
+
+    //this staggers feedchecks so all troughs dont fire at the same tick
+    private int getFeedCheckOffset(Level level, int feedcheckInterval) {
+        //cover case when interval has been decreased in config
+        if (feedCheckOffset < 0 || feedCheckOffset >= feedcheckInterval) {
+            feedCheckOffset = level.getRandom().nextInt(feedcheckInterval);
+        }
+
+        return feedCheckOffset;
     }
 }

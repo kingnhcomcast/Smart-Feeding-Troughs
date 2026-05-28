@@ -24,7 +24,9 @@ public class Services {
         final T loadedService = ServiceLoader.load(clazz)
                 .findFirst()
                 .orElseThrow(() -> new NullPointerException("Failed to load service for " + clazz.getName()));
-        Constants.LOG.debug("Loaded service implementation class={} for service class={}", loadedService.getClass().getName(), clazz.getName());
+        if (Constants.LOG.isDebugEnabled()) {
+            Constants.LOG.debug("Loaded service implementation class={} for service class={}", loadedService.getClass().getName(), clazz.getName());
+        }
         return loadedService;
     }
 }

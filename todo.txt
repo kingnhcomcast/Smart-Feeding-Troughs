@@ -1,24 +1,12 @@
-1.1
-bugs:
-* in some instances max capacity could be exceeded
 
-* edible hay bale
-    * 8 feeds per block
-    * change blockstate view to reflect how many feeds left
-    * shear vanilla block to make edible block
-    * when broken, drops #wheat equal to number of feeds left
-    * add sound when changing
-    * fix item texture (in creative tab/inventory)
-    * creative tab tooltip
+* feeding polish
+    * stop them from standing on top of trough to feed, just walk 1 block away
+    * dont feed immediately when get to trough, wait a second, stand there, look at trough, then eat
+    * lower head lower when looking at trough
+    * feeding particles (flakes of hay flying around)
+    * play eating sound while eating
 
-- feeding polish
-    - stop them from standing on top of trough to feed, just walk 1 block away
-    - dont feed immedialty when get to trough, wait a second, stand there, look at trough, then eat
-    - animate feeding - lower head?
-    - feeding particles (flakes of hay flying around)
-    - default eating sound
-
-- show food in trough, indicate fullness level
+* show food in trough, indicate fullness level, render item textures on top
 
 1.2
 - support ability to feed animals that breed in water, maybe with a new block type
