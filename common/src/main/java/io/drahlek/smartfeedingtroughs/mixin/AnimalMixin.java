@@ -10,6 +10,7 @@ import net.minecraft.world.entity.ai.goal.TemptGoal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -21,6 +22,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class AnimalMixin extends AgeableMob implements ISmartTroughClaimedAnimal {
     @Unique
     private BlockPos smartfeedingtroughs$claimedTroughPos;
+    @Unique
+    private BlockPos smartfeedingtroughs$claimedFeedingPos;
 
     protected AnimalMixin(EntityType<? extends AgeableMob> entityType, Level level) {
         super(entityType, level);
@@ -46,18 +49,25 @@ public abstract class AnimalMixin extends AgeableMob implements ISmartTroughClai
     }
 
     @Override
-    public void smartfeedingtroughs$claim(@UnknownNullability FeedingBlockEntity trough) {
+    public void smartfeedingtroughs$claim(@UnknownNullability FeedingBlockEntity trough, BlockPos feedingPos) {
         this.smartfeedingtroughs$claimedTroughPos = trough.getBlockPos();
+        this.smartfeedingtroughs$claimedFeedingPos = feedingPos;
     }
 
     @Override
     public void smartfeedingtroughs$releaseClaim() {
         this.smartfeedingtroughs$claimedTroughPos = null;
+        this.smartfeedingtroughs$claimedFeedingPos = null;
     }
 
     @Override
     public BlockPos smartfeedingtroughs$getClaimedTroughPos() {
         return this.smartfeedingtroughs$claimedTroughPos;
+    }
+
+    @Override
+    public @Nullable BlockPos smartfeedingtroughs$getClaimedFeedingPos() {
+        return this.smartfeedingtroughs$claimedFeedingPos;
     }
 
     @Override

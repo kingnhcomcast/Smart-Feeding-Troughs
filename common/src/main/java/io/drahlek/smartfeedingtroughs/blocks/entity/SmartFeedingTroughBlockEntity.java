@@ -12,6 +12,9 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
@@ -22,10 +25,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @BlockEntity(id = SmartFeedingTroughBlock.NAME)
 public class SmartFeedingTroughBlockEntity extends FeedingBlockEntity implements WorldlyContainer, MenuProvider {
@@ -61,6 +67,19 @@ public class SmartFeedingTroughBlockEntity extends FeedingBlockEntity implements
 
             if (!stack.isEmpty() && animal.isFood(stack)) {
                 return this.removeItem(slot, 1);
+            }
+        }
+
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack getFeedingFoodFor(Animal animal) {
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty() && animal.isFood(stack)) {
+                ItemStack food = stack.copy();
+                food.setCount(1);
+                return food;
             }
         }
 
@@ -107,6 +126,16 @@ public class SmartFeedingTroughBlockEntity extends FeedingBlockEntity implements
         tag.remove("Items");
     }
 
+    @Override
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
+        return this.saveWithoutMetadata(registries);
+    }
+
 
 
     /////////////////////////////////////////////////////
@@ -136,7 +165,7 @@ public class SmartFeedingTroughBlockEntity extends FeedingBlockEntity implements
     public ItemStack removeItem(int slot, int count) {
         ItemStack result = ContainerHelper.removeItem(this.items, slot, count);
         if (!result.isEmpty()) {
-            this.setChanged();
+            this.setContentChanged();
         }
 
         return result;
@@ -144,14 +173,19 @@ public class SmartFeedingTroughBlockEntity extends FeedingBlockEntity implements
 
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
-        return ContainerHelper.takeItem(this.items, slot);
+        ItemStack result = ContainerHelper.takeItem(this.items, slot);
+        if (!result.isEmpty()) {
+            this.setContentChanged();
+        }
+
+        return result;
     }
 
     @Override
     public void setItem(int slot, ItemStack itemStack) {
         this.items.set(slot, itemStack);
         itemStack.limitSize(this.getMaxStackSize(itemStack));
-        this.setChanged();
+        this.setContentChanged();
     }
 
     @Override
@@ -182,5 +216,13 @@ public class SmartFeedingTroughBlockEntity extends FeedingBlockEntity implements
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
         return new SmartFeedingTroughMenu(containerId, inventory, this);
+    }
+
+    private void setContentChanged() {
+        this.setChanged();
+        if (this.level != null && !this.level.isClientSide()) {
+            BlockState state = this.getBlockState();
+            this.level.sendBlockUpdated(this.worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
     }
 }
