@@ -15,10 +15,12 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 public class SmartFeedingTroughRenderer implements BlockEntityRenderer<SmartFeedingTroughBlockEntity> {
     private static final int MAX_CAPACITY = SmartFeedingTroughBlock.SLOT_COUNT * 64;
-    private static final ResourceLocation HAY_TEXTURE = ResourceLocation.withDefaultNamespace("textures/block/hay_block_top.png");
+    private static final ResourceLocation HAY_TEXTURE = new ResourceLocation("textures/block/hay_block_top.png");
     private static final RenderType HAY_RENDER_TYPE = RenderType.entityCutout(HAY_TEXTURE);
     private static final float[][] SLOT_OFFSETS = {
             {-0.19F, -0.10F},
@@ -83,31 +85,37 @@ public class SmartFeedingTroughRenderer implements BlockEntityRenderer<SmartFeed
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - blockEntity.getBlockState().getValue(SmartFeedingTroughBlock.FACING).toYRot()));
 
         PoseStack.Pose pose = poseStack.last();
+        Matrix4f poseMatrix = pose.pose();
+        Matrix3f normalMatrix = pose.normal();
         VertexConsumer consumer = bufferSource.getBuffer(HAY_RENDER_TYPE);
-        consumer.addVertex(pose, -halfWidth, 0.0F, halfDepth)
-                .setColor(255, 255, 255, 255)
-                .setUv(0.0F, 1.0F)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(packedLight)
-                .setNormal(pose, 0.0F, 1.0F, 0.0F);
-        consumer.addVertex(pose, halfWidth, 0.0F, halfDepth)
-                .setColor(255, 255, 255, 255)
-                .setUv(1.0F, 1.0F)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(packedLight)
-                .setNormal(pose, 0.0F, 1.0F, 0.0F);
-        consumer.addVertex(pose, halfWidth, 0.0F, -halfDepth)
-                .setColor(255, 255, 255, 255)
-                .setUv(1.0F, 0.0F)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(packedLight)
-                .setNormal(pose, 0.0F, 1.0F, 0.0F);
-        consumer.addVertex(pose, -halfWidth, 0.0F, -halfDepth)
-                .setColor(255, 255, 255, 255)
-                .setUv(0.0F, 0.0F)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(packedLight)
-                .setNormal(pose, 0.0F, 1.0F, 0.0F);
+        consumer.vertex(poseMatrix, -halfWidth, 0.0F, halfDepth)
+                .color(255, 255, 255, 255)
+                .uv(0.0F, 1.0F)
+                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                .uv2(packedLight)
+                .normal(normalMatrix, 0.0F, 1.0F, 0.0F)
+                .endVertex();
+        consumer.vertex(poseMatrix, halfWidth, 0.0F, halfDepth)
+                .color(255, 255, 255, 255)
+                .uv(1.0F, 1.0F)
+                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                .uv2(packedLight)
+                .normal(normalMatrix, 0.0F, 1.0F, 0.0F)
+                .endVertex();
+        consumer.vertex(poseMatrix, halfWidth, 0.0F, -halfDepth)
+                .color(255, 255, 255, 255)
+                .uv(1.0F, 0.0F)
+                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                .uv2(packedLight)
+                .normal(normalMatrix, 0.0F, 1.0F, 0.0F)
+                .endVertex();
+        consumer.vertex(poseMatrix, -halfWidth, 0.0F, -halfDepth)
+                .color(255, 255, 255, 255)
+                .uv(0.0F, 0.0F)
+                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                .uv2(packedLight)
+                .normal(normalMatrix, 0.0F, 1.0F, 0.0F)
+                .endVertex();
         poseStack.popPose();
     }
 

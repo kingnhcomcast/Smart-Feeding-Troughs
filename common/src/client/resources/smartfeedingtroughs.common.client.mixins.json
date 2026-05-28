@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "io.drahlek.smartfeedingtroughs.client.mixin",
   "refmap": "smartfeedingtroughs.refmap.json",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_17",
   "mixins": [],
   "client": [
     "MixinMinecraft"

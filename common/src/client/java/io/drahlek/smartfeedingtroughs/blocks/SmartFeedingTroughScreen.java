@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 public class SmartFeedingTroughScreen extends AbstractContainerScreen<SmartFeedingTroughMenu> {
-    private static final ResourceLocation CONTAINER_TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final ResourceLocation CONTAINER_TEXTURE = new ResourceLocation(
             Constants.MOD_ID,
             "textures/gui/container/smart_trough.png"
     );

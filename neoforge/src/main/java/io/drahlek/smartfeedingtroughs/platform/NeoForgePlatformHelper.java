@@ -1,8 +1,8 @@
 package io.drahlek.smartfeedingtroughs.platform;
 
 import io.drahlek.smartfeedingtroughs.platform.services.IPlatformHelper;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.loading.FMLLoader;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.FMLLoader;
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
 

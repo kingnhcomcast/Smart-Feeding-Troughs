@@ -1,6 +1,6 @@
 plugins {
     id 'multiloader-loader'
-    id 'net.neoforged.moddev'
+    id 'net.neoforged.moddev.legacyforge'
 }
 
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
@@ -36,8 +36,11 @@ configurations {
     }
 }
 
-neoForge {
-    version = neoforge_version
+legacyForge {
+    enable {
+        neoForgeVersion = neoforge_version
+        enabledSourceSets = [sourceSets.main, sourceSets.client] as Set
+    }
     // Automatically enable neoforge AccessTransformers if the file exists
     def at = project(':common').file('src/main/resources/META-INF/accesstransformer.cfg')
     if (at.exists()) {
@@ -49,7 +52,7 @@ neoForge {
     }
     runs {
         configureEach {
-            systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+            systemProperty('forge.enabledGameTestNamespaces', mod_id)
             ideName = "NeoForge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
         }
         client {
@@ -131,7 +134,7 @@ def replaceProperties = [
 processResources {
     inputs.properties replaceProperties
 
-    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
         expand replaceProperties
     }
 }

@@ -59,7 +59,7 @@ public class EdibleHayBlock extends HayBlock implements EntityBlock {
     }
 
     @Override
-    protected List<ItemStack> getDrops(BlockState blockState, LootParams.Builder params) {
+    public List<ItemStack> getDrops(BlockState blockState, LootParams.Builder params) {
         int charges = blockState.getValue(CHARGES);
         return charges <= 0 ? List.of() : List.of(new ItemStack(Items.WHEAT, charges));
     }
@@ -80,12 +80,12 @@ public class EdibleHayBlock extends HayBlock implements EntityBlock {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPES[state.getValue(CHARGES)];
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return getShape(state, level, pos, context);
     }
 }

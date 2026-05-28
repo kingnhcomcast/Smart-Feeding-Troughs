@@ -1,6 +1,5 @@
 package io.drahlek.smartfeedingtroughs.blocks;
 
-import com.mojang.serialization.MapCodec;
 import io.drahlek.dirigo.annotation.Block;
 import io.drahlek.dirigo.annotation.Recipe;
 import io.drahlek.dirigo.datagen.RecipeContext;
@@ -13,6 +12,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Player;
@@ -46,7 +46,6 @@ public class SmartFeedingTroughBlock extends BaseEntityBlock {
     public static final String NAME = "smart_trough";
     public static final int SLOT_COUNT = 4;
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
-    public static final MapCodec<SmartFeedingTroughBlock> CODEC = simpleCodec(SmartFeedingTroughBlock::new);
     private static final VoxelShape X_AXIS_SHAPE = Shapes.or(
             box(2.0D, 0.0D, 4.0D, 14.0D, 2.0D, 12.0D),  // bottom
             box(0.0D, 0.0D, 3.0D, 16.0D, 8.0D, 5.0D),   // north
@@ -75,7 +74,7 @@ public class SmartFeedingTroughBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected RenderShape getRenderShape(BlockState state) {
+    public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
 
@@ -83,7 +82,7 @@ public class SmartFeedingTroughBlock extends BaseEntityBlock {
     public static void buildRecipe(RecipeContext recipe) {
         recipe.shaped(
                         RecipeCategory.MISC,
-                        BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, SmartFeedingTroughBlock.NAME)),
+                        BuiltInRegistries.ITEM.get(new ResourceLocation(Constants.MOD_ID, SmartFeedingTroughBlock.NAME)),
                         1
                 )
                 .pattern("S S")
@@ -96,12 +95,7 @@ public class SmartFeedingTroughBlock extends BaseEntityBlock {
     }
 
     @Override
-    public MapCodec<SmartFeedingTroughBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof SmartFeedingTroughBlockEntity smartTrough) {
             player.openMenu(smartTrough);
         }
@@ -126,7 +120,7 @@ public class SmartFeedingTroughBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof SmartFeedingTroughBlockEntity smartTrough) {
             Containers.dropContents(level, pos, smartTrough);
             level.updateNeighbourForOutputSignal(pos, this);
@@ -141,12 +135,12 @@ public class SmartFeedingTroughBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
+    public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
+    public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
@@ -156,7 +150,7 @@ public class SmartFeedingTroughBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return state.getValue(FACING).getAxis() == Direction.Axis.X ? Z_AXIS_SHAPE : X_AXIS_SHAPE;
     }
 }

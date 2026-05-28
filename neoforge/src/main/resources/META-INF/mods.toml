@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "${neoforge_loader_version_range}"
+license = "${license}"
+
+[[mods]]
+    modId = "${mod_id}"
+    version = "${version}"
+    displayName = "${mod_name}"
+    logoFile="assets/smartfeedingtroughs/icon.png"
+    credits="${credits}"
+    authors = "${mod_author}"
+    description = '''${description}'''
+[[mixins]]
+    config = "smartfeedingtroughs.common.main.mixins.json"
+[[mixins]]
+    config = "smartfeedingtroughs.neoforge.mixins.json"
+[[mixins]]
+    config = "smartfeedingtroughs.common.client.mixins.json"
+[[mixins]]
+    config = "smartfeedingtroughs.neoforge.client.mixins.json"
+[[dependencies.${mod_id}]]
+    modId = "forge"
+    mandatory = true
+    versionRange = "[47.1.106,)"
+    ordering = "NONE"
+    side = "BOTH"
+[[dependencies.${mod_id}]]
+    modId = "minecraft"
+    mandatory = true
+    versionRange = "${minecraft_version_range_neoforge}"
+    ordering = "NONE"
+    side = "BOTH"
+[[dependencies.${mod_id}]]
+    modId = "dirigo"
+    mandatory = true
+    versionRange =  "[${dirigo_min_version},${dirigo_max_version})"
+    ordering = "NONE"
+    side = "BOTH"
