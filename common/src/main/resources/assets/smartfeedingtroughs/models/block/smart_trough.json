@@ -2,17 +2,9 @@
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "minecraft:block/oak_planks",
-    "wood": "minecraft:block/oak_planks",
-    "hay": "minecraft:block/hay_block_top"
+    "wood": "minecraft:block/oak_planks"
   },
   "elements": [
-    {
-      "from": [2, 4, 4],
-      "to": [14, 6, 12],
-      "faces": {
-        "up": { "texture": "#hay", "uv": [2, 4, 14, 12] }
-      }
-    },
     {
       "from": [2, 0, 4],
       "to": [14, 2, 12],
