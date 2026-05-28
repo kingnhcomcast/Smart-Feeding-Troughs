@@ -5,8 +5,12 @@ import io.drahlek.smartfeedingtroughs.animal.ISmartTroughClaimedAnimal;
 import io.drahlek.smartfeedingtroughs.blocks.entity.FeedingBlockEntity;
 import io.drahlek.smartfeedingtroughs.config.SmartFeedingTroughConfig;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
@@ -15,7 +19,9 @@ public class FeedFromTroughGoal extends Goal {
     private static final double SPEED = 1.0D;
     private static final int REPATH_INTERVAL = 20;
     private static final int FEED_CHANCE_COOLDOWN = 40;
-    private static final int EAT_DELAY = 30;
+    private static final int EAT_DELAY = 40;
+    private static final int CHEW_INTERVAL = 10;
+    private static final int CHEW_PARTICLE_COUNT = 4;
 
     private final Animal animal;
     private final ISmartTroughClaimedAnimal troughAnimal;
@@ -82,6 +88,8 @@ public class FeedFromTroughGoal extends Goal {
                         trough.feedAnimal(animal);
                     }
                 }
+            } else if (timeAtTrough == 1 || timeAtTrough % CHEW_INTERVAL == 0) {
+                playFeedingEffects();
             }
         } else {
             timeAtTrough = 0;
@@ -130,6 +138,48 @@ public class FeedFromTroughGoal extends Goal {
         )) {
             trough.releaseAnimal(animal);
         }
+    }
+
+    private void playFeedingEffects() {
+        FeedingBlockEntity trough = troughAnimal.smartfeedingtroughs$getClaimedTrough(animal.level());
+        if (trough == null) {
+            return;
+        }
+
+        troughAnimal.smartfeedingtroughs$playEatingSound();
+
+        if (!(animal.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        ItemStack food = trough.getFeedingFoodFor(animal);
+        if (food.isEmpty()) {
+            return;
+        }
+
+        Vec3 particlePos = getFeedingParticlePos();
+        serverLevel.sendParticles(
+                new ItemParticleOption(ParticleTypes.ITEM, food.getItem()),
+                particlePos.x(),
+                particlePos.y(),
+                particlePos.z(),
+                CHEW_PARTICLE_COUNT,
+                0.12D,
+                0.08D,
+                0.12D,
+                0.02D
+        );
+    }
+
+    private Vec3 getFeedingParticlePos() {
+        BlockPos troughPos = troughAnimal.smartfeedingtroughs$getClaimedTroughPos();
+        if (troughPos == null) {
+            return animal.position().add(0.0D, animal.getBbHeight() * 0.6D, 0.0D);
+        }
+
+        Vec3 animalMouthPos = animal.position().add(0.0D, animal.getBbHeight() * 0.6D, 0.0D);
+        Vec3 troughCenter = Vec3.atCenterOf(troughPos);
+        return animalMouthPos.lerp(troughCenter, 0.35D);
     }
 
     private boolean isCloseEnoughToEat() {

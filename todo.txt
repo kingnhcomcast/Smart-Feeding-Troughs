@@ -1,10 +1,10 @@
 
-- feeding polish
+* feeding polish
     * stop them from standing on top of trough to feed, just walk 1 block away
-    - dont feed immediately when get to trough, wait a second, stand there, look at trough, then eat
-    - animate feeding - lower head?
-    - feeding particles (flakes of hay flying around)
-    - default eating sound
+    * dont feed immediately when get to trough, wait a second, stand there, look at trough, then eat
+    * lower head lower when looking at trough
+    * feeding particles (flakes of hay flying around)
+    * play eating sound while eating
 
 * show food in trough, indicate fullness level, render item textures on top
 

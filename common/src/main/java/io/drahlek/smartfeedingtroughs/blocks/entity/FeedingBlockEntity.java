@@ -113,6 +113,8 @@ public abstract class FeedingBlockEntity extends BlockEntity {
 
     protected abstract ItemStack consumeFoodFor(Animal animal);
 
+    public abstract ItemStack getFeedingFoodFor(Animal animal);
+
     protected void onAnimalFed(Animal animal) {
     }
 

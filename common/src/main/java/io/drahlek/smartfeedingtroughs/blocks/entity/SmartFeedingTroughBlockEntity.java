@@ -73,6 +73,19 @@ public class SmartFeedingTroughBlockEntity extends FeedingBlockEntity implements
         return ItemStack.EMPTY;
     }
 
+    @Override
+    public ItemStack getFeedingFoodFor(Animal animal) {
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty() && animal.isFood(stack)) {
+                ItemStack food = stack.copy();
+                food.setCount(1);
+                return food;
+            }
+        }
+
+        return ItemStack.EMPTY;
+    }
+
 
     /////////////////////////////////////////////////////
     //// BlockEntity Overrides

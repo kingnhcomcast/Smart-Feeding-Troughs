@@ -88,6 +88,11 @@ public class EdibleHayBlockEntity extends FeedingBlockEntity {
     }
 
     @Override
+    public ItemStack getFeedingFoodFor(Animal animal) {
+        return hasFeedingFoodFor(animal) ? WHEAT_STACK.copy() : ItemStack.EMPTY;
+    }
+
+    @Override
     protected void onAnimalFed(Animal animal) {
         releaseAnimal(animal);
     }
