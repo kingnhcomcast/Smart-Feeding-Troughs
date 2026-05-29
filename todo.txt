@@ -1,23 +1,18 @@
-
-* feeding polish
-    * stop them from standing on top of trough to feed, just walk 1 block away
-    * dont feed immediately when get to trough, wait a second, stand there, look at trough, then eat
-    * lower head lower when looking at trough
-    * feeding particles (flakes of hay flying around)
-    * play eating sound while eating
-
-* show food in trough, indicate fullness level, render item textures on top
-
-1.2
+1.3
 - support ability to feed animals that breed in water, maybe with a new block type
+    - 'Aquatic Trough'
+    - same model, stone or mossy stone texture
 
 - if animal hurt, feed and heal
 - babies feed and grow (lower chance of this happening)
-- redstone signal disables
-- support comparator
+
+- redstone
+    - redstone signal disables
+    - support comparator
+
 - animal food only (if possible)
 
-1.3
+1.4
 - config
     - max feed count per animal type
     - feed chance per animal type
